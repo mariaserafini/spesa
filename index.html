@@ -1,143 +1,45 @@
 <!DOCTYPE html>
 <html lang="it">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <title>Price Tracker</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="css/style.css">
-    <style>
-        body {
-            visibility: hidden;
-        }
-
-        .home-hero {
-            margin-bottom: 2rem;
-        }
-
-        .home-hero p {
-            margin-top: .4rem;
-        }
-
-        .actions {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
-            gap: .75rem;
-        }
-
-        .action-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 1.25rem 1rem;
-            text-decoration: none;
-            color: var(--text);
-            transition: border-color .18s, box-shadow .18s, transform .15s;
-            display: flex;
-            flex-direction: column;
-            gap: .45rem;
-        }
-
-        .action-card:hover {
-            border-color: var(--accent);
-            box-shadow: 0 4px 16px rgba(196, 127, 23, .12);
-            transform: translateY(-2px);
-        }
-
-        .action-icon {
-            font-size: 1.4rem;
-        }
-
-        .action-title {
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: .95rem;
-        }
-
-        .action-desc {
-            color: var(--muted);
-            font-size: .8rem;
-            line-height: 1.4;
-        }
-    </style>
 </head>
+<body style="visibility:hidden">
 
-<body>
+    <!-- NAVBAR: generata da navbar.js -->
+    <nav class="navbar" id="navbar"></nav>
+    <div class="mobile-menu" id="mobileMenu"></div>
 
-    <!-- NAVBAR -->
-    <nav class="navbar">
-        <a class="nav-logo" href="index.html">🏷️ Price<span class="accent">Tracker</span></a>
+    <!-- CONTENUTO: ogni pagina inietta qui il proprio HTML -->
+    <main id="app"></main>
 
-        <ul class="nav-links">
-            <li class="nav-item">
-                <a href="#">Rileva ▾</a>
-                <div class="dropdown">
-                    <a href="pages/rileva-manuale.html">✏️ Manuale</a>
-                    <a href="pages/rileva-foto.html">📷 Foto</a>
-                </div>
-            </li>
-            <li><a href="pages/controlla.html">Controlla</a></li>
-            <li><a href="pages/analizza.html">Analizza</a></li>
-            <li><button onclick="logout()">Esci</button></li>
-        </ul>
-
-        <button class="hamburger" id="hamburger" aria-label="Menu">
-            <span></span><span></span><span></span>
-        </button>
-    </nav>
-
-    <!-- MOBILE MENU -->
-    <div class="mobile-menu" id="mobileMenu">
-        <div class="sub-label">Rileva</div>
-        <a href="pages/rileva-manuale.html">✏️ Manuale</a>
-        <a href="pages/rileva-foto.html">📷 Foto</a>
-        <a href="pages/controlla.html">🔍 Controlla</a>
-        <a href="pages/analizza.html">📊 Analizza</a>
-        <button onclick="logout()">🚪 Esci</button>
-    </div>
-
-    <!-- CONTENUTO -->
-    <div class="page-wrapper">
-        <div class="home-hero">
-            <h1>Cosa fai oggi?</h1>
-            <p>Tieni traccia dei prezzi e compra sempre al meglio.</p>
-        </div>
-
-        <div class="actions">
-            <a class="action-card" href="pages/rileva-manuale.html">
-                <div class="action-icon">✏️</div>
-                <div class="action-title">Rileva manuale</div>
-                <div class="action-desc">Inserisci un prezzo visto al supermercato</div>
-            </a>
-            <a class="action-card" href="pages/rileva-foto.html">
-                <div class="action-icon">📷</div>
-                <div class="action-title">Rileva da foto</div>
-                <div class="action-desc">Scatta una foto al cartellino, ci pensa Gemini</div>
-            </a>
-            <a class="action-card" href="pages/controlla.html">
-                <div class="action-icon">🔍</div>
-                <div class="action-title">Controlla</div>
-                <div class="action-desc">Cerca un prodotto e confronta i prezzi</div>
-            </a>
-            <a class="action-card" href="pages/analizza.html">
-                <div class="action-icon">📊</div>
-                <div class="action-title">Analizza</div>
-                <div class="action-desc">Scopri dove conviene fare la spesa</div>
-            </a>
-        </div>
-    </div>
-
+    <!-- Librerie esterne -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+    <!-- Core: ordine importante -->
     <script src="js/supabase.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/rileva.js"></script>
+
+    <!-- Componenti UI -->
+    <script src="js/components/navbar.js"></script>
+
+    <!-- Pagine -->
+    <script src="js/pages/home.js"></script>
+    <script src="js/pages/rileva-manuale.js"></script>
+    <script src="js/pages/rileva-foto.js"></script>
+    <script src="js/pages/controlla.js"></script>
+    <script src="js/pages/analizza.js"></script>
+
+    <!-- Router: deve essere caricato per ultimo -->
+    <script src="js/router.js"></script>
     <script>
-        requireAuth();
-
-        document.getElementById('hamburger').addEventListener('click', () => {
-            document.getElementById('mobileMenu').classList.toggle('open');
-        });
+        // Avvia l'app
+        initRouter();
     </script>
-</body>
 
+</body>
 </html>
