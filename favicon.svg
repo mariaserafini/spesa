@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Sfondo arrotondato -->
+  <rect width="32" height="32" rx="7" fill="#9b6fd4"/>
+  <!-- Manico carrello -->
+  <path d="M6 8h3l3.5 11h10l2.5-7.5H11.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Ruote -->
+  <circle cx="14" cy="22.5" r="1.5" fill="white"/>
+  <circle cx="21" cy="22.5" r="1.5" fill="white"/>
+</svg>
