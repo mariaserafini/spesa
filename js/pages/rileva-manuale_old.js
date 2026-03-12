@@ -2,7 +2,7 @@
 // RILEVA-MANUALE.JS — form inserimento manuale
 // ============================================================
 
-async function renderRilevaManuale(dati = null) {
+async function renderRilevaManuale() {
     document.getElementById('app').innerHTML = `
         <div class="page-header">
             <h1>Rileva manuale</h1>
@@ -76,10 +76,7 @@ async function renderRilevaManuale(dati = null) {
             <!-- VARIANTE -->
             <div class="field">
                 <label for="inputVariante">Variante <span class="text-muted">(opzionale)</span></label>
-                <div class="ac-wrapper">
-                    <input type="text" id="inputVariante" placeholder="es. sgusciati, sott'olio, cotti…" autocomplete="off" />
-                    <div class="ac-dropdown" id="dropdownVariante"></div>
-                </div>
+                <input type="text" id="inputVariante" placeholder="es. sgusciati, sott'olio, cotti…" />
             </div>
 
             <div class="divider"></div>
@@ -144,10 +141,10 @@ async function renderRilevaManuale(dati = null) {
     `;
 
     // Inizializza la logica dopo aver iniettato l'HTML
-    await initRilevaManuale(dati);
+    await initRilevaManuale();
 }
 
-async function initRilevaManuale(dati = null) {
+async function initRilevaManuale() {
     // ---- Stato ----
     let prodotti = [];
     let negozi   = [];
@@ -184,54 +181,20 @@ async function initRilevaManuale(dati = null) {
 
     // ---- Autocomplete ----
     creaAutocomplete({
+        input:    document.getElementById('inputProdotto'),
+        dropdown: document.getElementById('dropdownProdotto'),
+        lista:    prodotti,
+        onSelect: (v) => { prodottoSelezionato = v; prodottoNuovo = false; impostaNuovoProdotto(false); },
+        onNuovo:  (t) => { prodottoSelezionato = null; prodottoNuovo = !!t; impostaNuovoProdotto(!!t); }
+    });
+
+    creaAutocomplete({
         input:    document.getElementById('inputNegozio'),
         dropdown: document.getElementById('dropdownNegozio'),
         lista:    negozi,
         onSelect: (v) => { negozioSelezionato = v; negozioNuovo = false; impostaNuovoNegozio(false); },
         onNuovo:  (t) => { negozioSelezionato = null; negozioNuovo = !!t; impostaNuovoNegozio(!!t); }
     });
-
-    // ---- Autocomplete variante ----
-    // Viene ricaricato ogni volta che si seleziona un prodotto
-    let variantiAC = null;
-
-    async function aggiornaAutocompleteVariante(prodottoId) {
-        const { data } = await supabaseClient
-            .from('prezzi')
-            .select('variante')
-            .eq('fkprodotto', prodottoId)
-            .not('variante', 'is', null);
-
-        // Deduplica e trasforma in lista compatibile con creaAutocomplete
-        const uniche = [...new Set((data || []).map(r => r.variante).filter(Boolean))].sort();
-        const listaVarianti = uniche.map(v => ({ id: v, nome: v }));
-
-        variantiAC = listaVarianti;
-
-        creaAutocomplete({
-            input:       document.getElementById('inputVariante'),
-            dropdown:    document.getElementById('dropdownVariante'),
-            lista:       listaVarianti,
-            mostraNuovo: false,
-            onSelect:    (v) => { document.getElementById('inputVariante').value = v.nome; },
-            onNuovo:     () => {}
-        });
-    }
-
-    // Aggiorna le varianti quando si seleziona un prodotto esistente
-    const acProdottoOriginale = {
-        input:    document.getElementById('inputProdotto'),
-        dropdown: document.getElementById('dropdownProdotto'),
-        lista:    prodotti,
-        onSelect: (v) => {
-            prodottoSelezionato = v;
-            prodottoNuovo = false;
-            impostaNuovoProdotto(false);
-            aggiornaAutocompleteVariante(v.id);
-        },
-        onNuovo: (t) => { prodottoSelezionato = null; prodottoNuovo = !!t; impostaNuovoProdotto(!!t); }
-    };
-    creaAutocomplete(acProdottoOriginale);
 
     // ---- Calcolo prezzo per unità in tempo reale ----
     function aggiornaCalcolo() {
@@ -309,28 +272,6 @@ async function initRilevaManuale(dati = null) {
         }
     }
 
-    // ---- Pre-compila il form se arrivano dati da rileva-foto ----
-    if (dati) {
-        const banner = document.createElement('div');
-        banner.className = 'msg msg-success visible';
-        banner.style.marginBottom = '1rem';
-        banner.innerHTML = '📷 Dati estratti dalla foto — controlla e correggi se necessario prima di salvare.';
-        document.querySelector('.card').prepend(banner);
-
-        if (dati.nomeProdotto) document.getElementById('inputProdotto').value    = normalizzaProdotto(dati.nomeProdotto);
-        if (dati.nomeNegozio)  document.getElementById('inputNegozio').value     = normalizzaNegozio(dati.nomeNegozio);
-        if (dati.variante)     document.getElementById('inputVariante').value    = dati.variante.trim().toLowerCase();
-        if (dati.prezzo)       document.getElementById('inputPrezzo').value      = dati.prezzo;
-        if (dati.quantita)     document.getElementById('inputQuantita').value    = dati.quantita;
-        if (dati.unita)        document.getElementById('inputUnita').value       = dati.unita;
-        if (dati.note)         document.getElementById('inputNote').value        = dati.note;
-        if (dati.promozione)   document.getElementById('inputPromozione').checked = dati.promozione;
-
-        if (dati.nomeProdotto) risolviProdotto(dati.nomeProdotto);
-        if (dati.nomeNegozio)  risolviNegozio(dati.nomeNegozio);
-        aggiornaCalcolo();
-    }
-
     // ---- Salvataggio ----
     document.getElementById('btnSalva').addEventListener('click', async () => {
         const msgErr   = document.getElementById('msgErrore');
@@ -340,18 +281,14 @@ async function initRilevaManuale(dati = null) {
         msgOk.classList.remove('visible');
         msgWarn.classList.remove('visible');
 
-        const nomeProdotto = normalizzaProdotto(document.getElementById('inputProdotto').value);
-        const nomeNegozio  = normalizzaNegozio(document.getElementById('inputNegozio').value);
-        const variante     = document.getElementById('inputVariante').value.trim().toLowerCase() || null;
+        const nomeProdotto = document.getElementById('inputProdotto').value.trim();
+        const nomeNegozio  = document.getElementById('inputNegozio').value.trim();
+        const variante     = document.getElementById('inputVariante').value.trim() || null;
         const prezzo       = parseFloat(document.getElementById('inputPrezzo').value);
         const quantita     = parseFloat(document.getElementById('inputQuantita').value);
         const unita        = document.getElementById('inputUnita').value;
         const promozione   = document.getElementById('inputPromozione').checked;
         const note         = document.getElementById('inputNote').value.trim() || null;
-
-        // Aggiorna i campi visibili con i valori normalizzati
-        document.getElementById('inputProdotto').value = nomeProdotto;
-        document.getElementById('inputNegozio').value  = nomeNegozio;
 
         // Risolvi prodotto e negozio prima della validazione
         risolviProdotto(nomeProdotto);

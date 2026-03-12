@@ -7,16 +7,16 @@
 // ============================================================
 
 const ROUTES = {
-    'home': renderHome,
+    'home':           renderHome,
     'rileva-manuale': renderRilevaManuale,
-    'rileva-foto': renderRilevaFoto,
-    'controlla': renderControlla,
-    'analizza': renderAnalizza,
+    'rileva-foto':    renderRilevaFoto,
+    'controlla':      renderControlla,
+    'analizza':       renderAnalizza,
 };
 
 let paginaCorrente = null;
 
-async function navigate(pagina) {
+async function navigate(pagina, dati = null) {
     // Usa home come fallback
     const render = ROUTES[pagina] || ROUTES['home'];
     paginaCorrente = pagina;
@@ -27,7 +27,7 @@ async function navigate(pagina) {
     app.offsetHeight; // reflow
     app.style.animation = '';
 
-    await render();
+    await render(dati);
     window.location.hash = pagina;
 }
 

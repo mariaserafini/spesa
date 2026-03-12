@@ -1,5 +1,5 @@
 // ============================================================
-// ANALIZZA.JS — Versione Aggiornata
+// ANALIZZA.JS — Analisi convenienza per negozio
 // ============================================================
 
 async function renderAnalizza() {
@@ -29,6 +29,7 @@ async function renderAnalizza() {
 }
 
 async function initAnalizza() {
+    // 1. Recupero i negozi per l'autocomplete
     const { data: negozi, error } = await supabaseClient
         .from('negozi')
         .select('id, nome, filiale')
@@ -41,30 +42,16 @@ async function initAnalizza() {
         display: n.filiale ? `${n.nome} (${n.filiale})` : n.nome
     }));
 
-    const input = document.getElementById('inputCercaNegozio');
-
+    // NOTA: Sposta creaAutocomplete in un file globale per farlo funzionare qui
     creaAutocomplete({
-        input: input,
+        input: document.getElementById('inputCercaNegozio'),
         dropdown: document.getElementById('dropdownNegozio'),
         lista: listaNegozi,
         campoLabel: 'display',
         mostraNuovo: false,
         onSelect: (negozio) => {
-            input.value = negozio.display;
+            document.getElementById('inputCercaNegozio').value = negozio.display;
             eseguiAnalisi(negozio);
-        }
-    });
-
-    // Supporto tasto INVIO (logica simile a controlla.js)
-    input.addEventListener('keydown', e => {
-        if (e.key !== 'Enter') return;
-        const testo = e.target.value.toLowerCase().trim();
-        if (!testo) return;
-        const match = listaNegozi.find(n => n.display.toLowerCase().includes(testo));
-        if (match) {
-            e.target.value = match.display;
-            document.getElementById('dropdownNegozio').style.display = 'none';
-            eseguiAnalisi(match);
         }
     });
 }
@@ -74,7 +61,7 @@ async function eseguiAnalisi(negozio) {
     contenitore.innerHTML = `
         <div class="foto-loading" style="display:flex; grid-column: 1 / -1">
             <div class="spinner"></div>
-            <span>Analisi in corso per ${negozio.display}...</span>
+            <span>Sto analizzando tutti i prezzi di ${negozio.nome}…</span>
         </div>
     `;
 
@@ -82,72 +69,72 @@ async function eseguiAnalisi(negozio) {
     seiMesiFa.setMonth(seiMesiFa.getMonth() - 6);
     const dataLimite = seiMesiFa.toISOString().slice(0, 10);
 
+    // 2. Recupero tutti i prezzi attuali del negozio scelto
     const { data: prezziNegozio, error } = await supabaseClient
         .from('prezzi')
         .select('*, prodotti(id, nome, categoria, unita)')
         .eq('fknegozio', negozio.id);
 
     if (error) {
-        contenitore.innerHTML = `<div class="msg msg-error visible">Errore caricamento dati.</div>`;
+        contenitore.innerHTML = `<div class="msg msg-error visible">Errore nel caricamento.</div>`;
         return;
     }
 
-    const categorie = { daComprare: [], potrestiComprare: [], nonComprare: [], daControllare: [] };
+    const categorie = {
+        daComprare: [],
+        potrestiComprare: [],
+        nonComprare: [],
+        daControllare: []
+    };
 
+    // 3. Elaborazione logica per ogni prodotto
     for (const item of prezziNegozio) {
-        // Recupero il minimo globale degli ultimi 6 mesi con il nome del negozio
+        if (item.datarilevazione < dataLimite) {
+            categorie.daControllare.push(item);
+            continue;
+        }
+
+        // Trovo il minimo storico globale degli ultimi 6 mesi per questo prodotto
         const { data: minData } = await supabaseClient
             .from('prezzi')
-            .select('prezzounita, negozi(nome, filiale)')
+            .select('prezzounita')
             .eq('fkprodotto', item.fkprodotto)
             .gte('datarilevazione', dataLimite)
             .order('prezzounita', { ascending: true })
             .limit(1);
 
-        const recordMinimo = minData?.[0] || null;
-        const minGlobale = recordMinimo ? parseFloat(recordMinimo.prezzounita) : parseFloat(item.prezzounita);
-        const negozioMin = recordMinimo ? (recordMinimo.negozi.filiale ? `${recordMinimo.negozi.nome} (${recordMinimo.negozi.filiale})` : recordMinimo.negozi.nome) : 'N/D';
+        const minGlobale = minData && minData.length > 0 ? parseFloat(minData[0].prezzounita) : parseFloat(item.prezzounita);
+        const prezzoAttuale = parseFloat(item.prezzounita);
+        const soglia10 = minGlobale * 1.10;
 
-        // Arricchisco l'oggetto con le info del minimo per la visualizzazione
-        item.infoMinimo = { valore: minGlobale, negozio: negozioMin };
-
-        if (item.datarilevazione < dataLimite) {
-            categorie.daControllare.push(item);
+        if (prezzoAttuale <= minGlobale) {
+            categorie.daComprare.push(item);
+        } else if (prezzoAttuale <= soglia10) {
+            categorie.potrestiComprare.push(item);
         } else {
-            const prezzoAttuale = parseFloat(item.prezzounita);
-            if (prezzoAttuale <= minGlobale) {
-                categorie.daComprare.push(item);
-            } else if (prezzoAttuale <= (minGlobale * 1.10)) {
-                categorie.potrestiComprare.push(item);
-            } else {
-                categorie.nonComprare.push(item);
-            }
+            categorie.nonComprare.push(item);
         }
     }
 
-    // Ordinamento alfabetico per ogni categoria [Nuova Modifica]
-    const sortAlfa = (a, b) => a.prodotti.nome.localeCompare(b.prodotti.nome);
-    Object.keys(categorie).forEach(k => categorie[k].sort(sortAlfa));
-
-    renderRisultatiAnalisi(categorie);
+    renderRisultatiAnalisi(categorie, negozio);
 }
 
-function renderRisultatiAnalisi(cat) {
+function renderRisultatiAnalisi(cat, negozio) {
     const contenitore = document.getElementById('risultatiAnalisi');
-    contenitore.innerHTML = '';
+    contenitore.innerHTML = ''; // Pulisco il loading
 
-    const configurazione = [
-        { id: 'daComprare', titolo: '✅ Da Comprare', lista: cat.daComprare, showMin: false },
-        { id: 'potrestiComprare', titolo: '🟡 Potresti Comprare', lista: cat.potrestiComprare, showMin: true },
-        { id: 'nonComprare', titolo: '❌ Non Comprare', lista: cat.nonComprare, showMin: true },
-        { id: 'daControllare', titolo: '⏳ Da Controllare', lista: cat.daControllare, showMin: true }
+    const config = [
+        { id: 'daComprare', titolo: '✅ Da Comprare', lista: cat.daComprare, classe: 'badge-best' },
+        { id: 'potrestiComprare', titolo: '🟡 Potresti Comprare', lista: cat.potrestiComprare, classe: 'badge-promo' },
+        { id: 'nonComprare', titolo: '❌ Non Comprare', lista: cat.nonComprare, classe: 'badge-vecchio' },
+        { id: 'daControllare', titolo: '⏳ Da Controllare', lista: cat.daControllare, classe: '' }
     ];
 
-    configurazione.forEach(box => {
+    config.forEach(box => {
         const sezione = document.createElement('div');
         sezione.className = 'controlla-sezione card';
 
-        const righeHtml = box.lista.map(r => renderRigaProdotto(r, box.showMin)).join('');
+        const righeHtml = box.lista.map(r => renderRigaProdotto(r)).join('');
 
         sezione.innerHTML = `
             <div class="controlla-variante-titolo ${box.id === 'daControllare' ? 'controlla-variante-base' : ''}">
@@ -156,7 +143,7 @@ function renderRisultatiAnalisi(cat) {
             <div class="table-responsive">
                 <table class="results-table controlla-table">
                     <tbody>
-                        ${righeHtml || '<tr><td colspan="4" class="text-muted" style="padding:1rem">Nessun prodotto</td></tr>'}
+                        ${righeHtml || '<tr><td colspan="4" class="text-muted">Nessun prodotto trovato</td></tr>'}
                     </tbody>
                 </table>
             </div>
@@ -164,34 +151,31 @@ function renderRisultatiAnalisi(cat) {
         contenitore.appendChild(sezione);
     });
 
+    // Ri-attacco i listener per i pulsanti (conferma/modifica) come in controlla.js
     attaccaListenerAzioni(contenitore);
 }
 
-function renderRigaProdotto(r, showMin) {
-    const unita = r.prodotti.unita || 'kg';
-    const tempo = calcolaEtaTesto(r.datarilevazione);
+// Genera la singola riga della tabella (identica a controlla.js)
+function renderRigaProdotto(r) {
+    const unitaBase = r.prodotti.unita || 'kg';
+    const dataRil = r.datarilevazione;
 
-    // HTML aggiuntivo per il prezzo minimo storico
-    const minInfoHtml = showMin
-        ? `<div class="text-accent" style="font-size: 0.75rem; margin-top: 2px;">
-            Migliore: € ${r.infoMinimo.valore.toFixed(2)} / ${unita} presso ${r.infoMinimo.negozio}
-           </div>`
-        : '';
+    // Funzione helper per l'età del dato (presunta globale o da copiare)
+    const tempo = typeof calcolaEtaTesto === 'function' ? calcolaEtaTesto(dataRil) : { testo: dataRil, badge: '' };
 
     return `
         <tr data-id="${r.id}">
             <td>
                 <div class="controlla-negozio">${r.prodotti.nome}</div>
                 <div class="controlla-note">${r.variante || r.prodotti.categoria}</div>
-                ${minInfoHtml}
             </td>
-            <td class="controlla-prezzo-unita">€ ${parseFloat(r.prezzounita).toFixed(2)}</td>
-            <td class="controlla-prezzo-formato">€ ${parseFloat(r.prezzo).toFixed(2)} <br><small class="text-muted">${r.quantita}${r.unita}</small></td>
+            <td class="controlla-prezzo-unita">€ ${parseFloat(r.prezzounita).toFixed(2)} / ${unitaBase}</td>
+            <td class="controlla-prezzo-formato">${r.quantita}${r.unita} (€${parseFloat(r.prezzo).toFixed(2)})</td>
             <td class="controlla-col-azioni">
                 <div class="controlla-tempo">${tempo.testo}</div>
                 <div class="controlla-badges-row">
-                    <button class="btn-azione btn-conferma" data-id="${r.id}">✓</button>
-                    <button class="btn-azione btn-aggiorna" data-id="${r.id}">✎</button>
+                    <button class="btn-azione btn-conferma" data-id="${r.id}" title="Conferma">✓</button>
+                    <button class="btn-azione btn-aggiorna" data-id="${r.id}" title="Modifica">✎</button>
                 </div>
             </td>
         </tr>
@@ -201,10 +185,11 @@ function renderRigaProdotto(r, showMin) {
                     <div class="controlla-edit-fields">
                         <div class="field"><label>Prezzo</label><input type="number" class="edit-prezzo" value="${r.prezzo}" step="0.01"></div>
                         <div class="field"><label>Qtà</label><input type="number" class="edit-quantita" value="${r.quantita}"></div>
+                        <div class="field"><label>Unità</label><input type="text" class="edit-unita" value="${r.unita}"></div>
                     </div>
                     <div class="controlla-edit-actions">
-                        <button class="btn btn-primary btn-sm btn-salva-edit" data-id="${r.id}">Salva</button>
-                        <button class="btn btn-ghost btn-sm btn-annulla-edit" data-id="${r.id}">Annulla</button>
+                        <button class="btn btn-primary btn-sm btn-salva-edit" data-id="${r.id}">OK</button>
+                        <button class="btn btn-ghost btn-sm btn-annulla-edit" data-id="${r.id}">X</button>
                     </div>
                 </div>
             </td>
@@ -212,25 +197,24 @@ function renderRigaProdotto(r, showMin) {
     `;
 }
 
-// Funzione per gestire i click sui pulsanti azione
 function attaccaListenerAzioni(contenitore) {
     contenitore.addEventListener('click', async (e) => {
         const id = e.target.dataset.id;
         if (!id) return;
 
         if (e.target.classList.contains('btn-conferma')) {
+            const btn = e.target;
             const { error } = await supabaseClient
                 .from('prezzi')
                 .update({ datarilevazione: new Date().toISOString().slice(0, 10) })
                 .eq('id', id);
-            if (!error) e.target.style.background = '#c6e0b4';
+            if (!error) btn.style.background = '#c6e0b4';
         }
 
         if (e.target.classList.contains('btn-aggiorna')) {
             const editRow = document.getElementById(`edit-${id}`);
             editRow.style.display = editRow.style.display === 'none' ? 'table-row' : 'none';
         }
-
 
         if (e.target.classList.contains('btn-annulla-edit')) {
             document.getElementById(`edit-${id}`).style.display = 'none';

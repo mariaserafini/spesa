@@ -9,14 +9,16 @@ function renderNavbar() {
 
     navbar.innerHTML = `
         <a class="nav-logo" onclick="navigate('home')">
-            🏷️ Price<span class="accent">Tracker</span>
+            <span class="accent">Home</span>
         </a>
         <ul class="nav-links">
             <li class="nav-item">
                 <a href="#" id="navRileva">Rileva ▾</a>
                 <div class="dropdown">
-                    <a onclick="navigate('rileva-manuale')">✏️ Manuale</a>
-                    <a onclick="navigate('rileva-foto')">📷 Foto</a>
+                    <div class="dropdown-inner">
+                        <a onclick="navigate('rileva-manuale')">✏️ Manuale</a>
+                        <a onclick="navigate('rileva-foto')">📷 Foto</a>
+                    </div>
                 </div>
             </li>
             <li><a onclick="navigate('controlla')" id="navControlla">Controlla</a></li>

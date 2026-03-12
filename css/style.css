@@ -126,13 +126,18 @@ p  { color: var(--text-2); }
 .dropdown {
     display: none;
     position: absolute;
-    top: calc(100% + 8px);
+    top: 100%;          /* attaccato al link, nessun gap fisico */
     left: 0;
+    padding-top: 6px;   /* distanza visiva con padding, non con top */
+    background: transparent;
+    min-width: 170px;
+}
+
+.dropdown-inner {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     overflow: hidden;
-    min-width: 170px;
     box-shadow: var(--shadow-lg);
 }
 
@@ -341,6 +346,13 @@ textarea { resize: vertical; min-height: 80px; }
 .msg.visible { display: block; }
 .msg-error   { background: var(--error-bg); border: 1px solid var(--error-border); color: var(--error-text); }
 .msg-success { background: var(--success-bg); border: 1px solid #a8dfc0; color: var(--success-text); }
+.msg-warning { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; }
+
+.msg-warning .warn-title  { font-weight: 600; margin-bottom: .4rem; }
+.msg-warning .warn-detail { font-size: .82rem; color: #78350f; margin-bottom: .75rem; }
+.msg-warning .warn-detail span { font-weight: 500; }
+.msg-warning .warn-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+.msg-warning .warn-actions .btn { font-size: .85rem; padding: .5rem 1rem; }
 
 /* ============================================================
    BADGE / PILL
@@ -498,11 +510,280 @@ body.login-page {
 .login-actions { margin-top: 1.5rem; }
 
 /* ============================================================
-   UTILITY
+   RILEVA FOTO
    ============================================================ */
+.foto-drop-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .75rem;
+    border: 2px dashed var(--border-dark);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    transition: border-color .18s, background .18s;
+    cursor: default;
+}
+
+.foto-drop-area.drag-over {
+    border-color: var(--accent);
+    background: var(--accent-light);
+}
+
+.foto-drop-icon { font-size: 2.5rem; line-height: 1; }
+
+.foto-drop-testo {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+    color: var(--muted);
+    font-size: .9rem;
+}
+
+.foto-drop-testo strong { color: var(--text-2); font-weight: 600; }
+
+.foto-drop-btns {
+    display: flex;
+    gap: .6rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: .25rem;
+}
+
+/* Su desktop nasconde il pulsante "Scatta" (capture funziona solo su mobile) */
+@media (hover: hover) and (pointer: fine) {
+    .foto-drop-btns label[for="inputFotoCamera"] { display: none; }
+}
+
+.foto-preview-wrap {
+    flex-direction: column;
+    align-items: center;
+    gap: .75rem;
+}
+
+.foto-preview {
+    width: 100%;
+    max-height: 340px;
+    object-fit: contain;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+}
+
+.btn-sm { padding: .4rem .9rem; font-size: .82rem; }
+
+.foto-loading {
+    align-items: center;
+    justify-content: center;
+    gap: .75rem;
+    padding: 1.5rem 0;
+    color: var(--text-2);
+    font-size: .9rem;
+}
+
+.spinner {
+    width: 22px;
+    height: 22px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Griglia risultati Gemini */
+.risultati-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: .6rem;
+}
+
+.risultato-campo {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: .6rem .8rem;
+}
+
+.risultato-label {
+    font-size: .7rem;
+    font-weight: 500;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .2rem;
+}
+
+.risultato-val {
+    font-size: .95rem;
+    color: var(--text);
+    font-weight: 400;
+}
 .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
 .text-muted  { color: var(--muted); font-size: .875rem; }
 .text-accent { color: var(--accent); font-weight: 500; }
 .mt-1 { margin-top: .5rem; }
 .mt-2 { margin-top: 1rem; }
 .mt-3 { margin-top: 1.5rem; }
+
+/* ============================================================
+   CONTROLLA
+   ============================================================ */
+.controlla-varianti {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.controlla-sezione {
+    padding: 0;
+    overflow: hidden;
+}
+
+.controlla-variante-titolo {
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 700;
+    font-size: .85rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding: .75rem 1.25rem;
+    background: var(--accent-light);
+    border-bottom: 1px solid #e8c870;
+}
+
+.controlla-variante-base {
+    color: var(--muted);
+    background: var(--surface-2);
+    border-bottom-color: var(--border);
+}
+
+.table-responsive { overflow-x: auto; }
+
+.controlla-table { margin: 0; }
+.controlla-table th,
+.controlla-table td { padding: .5rem .75rem; }
+.controlla-table th:last-child,
+.controlla-table td:last-child { text-align: right; }
+
+.controlla-best td { background: #fffdf5; }
+
+.controlla-negozio { font-weight: 500; color: var(--text); font-size: .9rem; }
+.controlla-note    { font-size: .75rem; color: var(--muted); margin-top: .1rem; }
+
+.controlla-prezzo-unita {
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 700;
+    font-size: .95rem;
+    color: var(--accent);
+    white-space: nowrap;
+}
+
+.controlla-prezzo-formato {
+    font-size: .82rem;
+    color: var(--text-2);
+    white-space: nowrap;
+}
+
+.controlla-col-azioni { text-align: right; white-space: nowrap; }
+
+.controlla-tempo {
+    font-size: .78rem;
+    color: var(--muted);
+    white-space: nowrap;
+    margin-bottom: .2rem;
+}
+
+.controlla-badges-row {
+    display: flex;
+    gap: .25rem;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.badge-inattendibile { background: #fff3cd; color: #856404; border: 1px solid #ffe08a; }
+.badge-vecchio       { background: #fde8e8; color: #9b1c1c; border: 1px solid #f5c0c0; }
+
+/* ---- Pulsanti azione (icona compatta) ---- */
+.btn-azione {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    font-size: .85rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+    flex-shrink: 0;
+}
+
+.btn-conferma {
+    background: #e2efda;
+    color: #276228;
+    border-color: #c6e0b4;
+}
+.btn-conferma:hover { background: #c6e0b4; }
+
+.btn-aggiorna {
+    background: #ddeeff;
+    color: #1a5276;
+    border-color: #aed6f1;
+}
+.btn-aggiorna:hover { background: #aed6f1; }
+.btn-aggiorna:hover { background: #aed6f1; }
+
+/* Riga editing inline */
+.controlla-edit-row td {
+    background: #fafafa;
+    border-top: none !important;
+    padding: 0 !important;
+}
+
+.controlla-edit-box {
+    padding: .75rem 1.25rem;
+    border-top: 1px dashed var(--border-dark);
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.controlla-edit-fields {
+    display: flex;
+    gap: .75rem;
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+.controlla-edit-fields .field {
+    margin: 0;
+    min-width: 80px;
+}
+
+.controlla-edit-fields .edit-field-note {
+    min-width: 160px;
+    flex: 1;
+}
+
+.controlla-edit-fields label {
+    font-size: .75rem;
+    margin-bottom: .2rem;
+}
+
+.controlla-edit-fields input,
+.controlla-edit-fields select {
+    padding: .35rem .55rem;
+    font-size: .88rem;
+}
+
+.controlla-edit-actions {
+    display: flex;
+    gap: .4rem;
+    padding-bottom: .1rem;
+}
