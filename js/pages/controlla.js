@@ -6,7 +6,6 @@ async function renderControlla() {
     document.getElementById('app').innerHTML = `
         <div class="page-header">
             <h1>Controlla</h1>
-            <p>Cerca un prodotto per vedere tutte le rilevazioni ordinate per convenienza.</p>
         </div>
 
         <div class="card">

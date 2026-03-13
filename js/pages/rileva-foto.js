@@ -6,7 +6,6 @@ function renderRilevaFoto() {
     document.getElementById('app').innerHTML = `
         <div class="page-header">
             <h1>Rileva da foto</h1>
-            <p>Scatta o carica una foto al cartellino del prezzo.</p>
         </div>
 
         <div class="card">
@@ -67,16 +66,16 @@ function renderRilevaFoto() {
 
 function initRilevaFoto() {
     let fileSelezionato = null;
-    let datiEstratti    = null;
+    let datiEstratti = null;
 
-    const dropArea      = document.getElementById('dropArea');
-    const previewWrap   = document.getElementById('previewWrap');
-    const previewImg    = document.getElementById('previewImg');
-    const areaAnalizza  = document.getElementById('areaAnalizza');
-    const dividerAn     = document.getElementById('dividerAnalizza');
+    const dropArea = document.getElementById('dropArea');
+    const previewWrap = document.getElementById('previewWrap');
+    const previewImg = document.getElementById('previewImg');
+    const areaAnalizza = document.getElementById('areaAnalizza');
+    const dividerAn = document.getElementById('dividerAnalizza');
     const loadingGemini = document.getElementById('loadingGemini');
     const risultatiWrap = document.getElementById('risultatiWrap');
-    const msgErrore     = document.getElementById('msgErrore');
+    const msgErrore = document.getElementById('msgErrore');
 
     // ---- Selezione file ----
     function gestisciFoto(file) {
@@ -86,21 +85,21 @@ function initRilevaFoto() {
         }
         fileSelezionato = file;
         previewImg.src = URL.createObjectURL(file);
-        dropArea.style.display      = 'none';
-        previewWrap.style.display   = 'flex';
-        areaAnalizza.style.display  = 'block';
-        dividerAn.style.display     = 'block';
+        dropArea.style.display = 'none';
+        previewWrap.style.display = 'flex';
+        areaAnalizza.style.display = 'block';
+        dividerAn.style.display = 'block';
         risultatiWrap.style.display = 'none';
         msgErrore.classList.remove('visible');
         datiEstratti = null;
     }
 
-    document.getElementById('inputFoto').addEventListener('change',       e => gestisciFoto(e.target.files[0]));
+    document.getElementById('inputFoto').addEventListener('change', e => gestisciFoto(e.target.files[0]));
     document.getElementById('inputFotoCamera').addEventListener('change', e => gestisciFoto(e.target.files[0]));
 
     // Drag & drop
-    dropArea.addEventListener('dragover',  e => { e.preventDefault(); dropArea.classList.add('drag-over'); });
-    dropArea.addEventListener('dragleave', ()  => dropArea.classList.remove('drag-over'));
+    dropArea.addEventListener('dragover', e => { e.preventDefault(); dropArea.classList.add('drag-over'); });
+    dropArea.addEventListener('dragleave', () => dropArea.classList.remove('drag-over'));
     dropArea.addEventListener('drop', e => {
         e.preventDefault();
         dropArea.classList.remove('drag-over');
@@ -110,22 +109,22 @@ function initRilevaFoto() {
     // Cambia foto
     document.getElementById('btnCambia').addEventListener('click', () => {
         fileSelezionato = null;
-        datiEstratti    = null;
-        previewWrap.style.display   = 'none';
-        areaAnalizza.style.display  = 'none';
-        dividerAn.style.display     = 'none';
+        datiEstratti = null;
+        previewWrap.style.display = 'none';
+        areaAnalizza.style.display = 'none';
+        dividerAn.style.display = 'none';
         risultatiWrap.style.display = 'none';
-        dropArea.style.display      = 'flex';
+        dropArea.style.display = 'flex';
         msgErrore.classList.remove('visible');
-        document.getElementById('inputFoto').value        = '';
-        document.getElementById('inputFotoCamera').value  = '';
+        document.getElementById('inputFoto').value = '';
+        document.getElementById('inputFotoCamera').value = '';
     });
 
     // ---- Analizza ----
     document.getElementById('btnAnalizza').addEventListener('click', async () => {
         if (!fileSelezionato) return;
         msgErrore.classList.remove('visible');
-        areaAnalizza.style.display  = 'none';
+        areaAnalizza.style.display = 'none';
         loadingGemini.style.display = 'flex';
 
         try {
@@ -147,7 +146,7 @@ function initRilevaFoto() {
 
     document.getElementById('btnRiprova').addEventListener('click', () => {
         risultatiWrap.style.display = 'none';
-        areaAnalizza.style.display  = 'block';
+        areaAnalizza.style.display = 'block';
     });
 
     // ---- Helpers ----
@@ -158,13 +157,13 @@ function initRilevaFoto() {
 
     function mostraRisultati(dati) {
         const campi = [
-            { label: 'Prodotto',   val: dati.nomeProdotto },
-            { label: 'Negozio',    val: dati.nomeNegozio  },
-            { label: 'Variante',   val: dati.variante      },
-            { label: 'Prezzo',     val: dati.prezzo    != null ? `€ ${parseFloat(dati.prezzo).toFixed(2)}` : null },
-            { label: 'Quantità',   val: dati.quantita  != null ? `${dati.quantita} ${dati.unita || ''}`    : null },
+            { label: 'Prodotto', val: dati.nomeProdotto },
+            { label: 'Negozio', val: dati.nomeNegozio },
+            { label: 'Variante', val: dati.variante },
+            { label: 'Prezzo', val: dati.prezzo != null ? `€ ${parseFloat(dati.prezzo).toFixed(2)}` : null },
+            { label: 'Quantità', val: dati.quantita != null ? `${dati.quantita} ${dati.unita || ''}` : null },
             { label: 'Promozione', val: dati.promozione ? '🏷️ Sì' : null },
-            { label: 'Note',       val: dati.note },
+            { label: 'Note', val: dati.note },
         ].filter(c => c.val);
 
         document.getElementById('risultatiPreview').innerHTML = campi.map(c => `
@@ -175,14 +174,14 @@ function initRilevaFoto() {
         `).join('');
 
         const mancanti = [];
-        if (!dati.nomeProdotto)   mancanti.push('prodotto');
-        if (dati.prezzo == null)  mancanti.push('prezzo');
+        if (!dati.nomeProdotto) mancanti.push('prodotto');
+        if (dati.prezzo == null) mancanti.push('prezzo');
         if (dati.quantita == null) mancanti.push('quantità');
-        if (!dati.unita)          mancanti.push('unità di misura');
+        if (!dati.unita) mancanti.push('unità di misura');
 
         const msgAvviso = document.getElementById('msgAvviso');
         if (mancanti.length) {
-            msgAvviso.textContent  = `⚠️ Non ho trovato: ${mancanti.join(', ')}. Potrai completarli nel form.`;
+            msgAvviso.textContent = `⚠️ Non ho trovato: ${mancanti.join(', ')}. Potrai completarli nel form.`;
             msgAvviso.style.display = 'block';
         } else {
             msgAvviso.style.display = 'none';
@@ -196,7 +195,7 @@ function initRilevaFoto() {
 async function analizzaConGemini(file) {
     const base64 = await new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload  = () => resolve(reader.result.split(',')[1]);
+        reader.onload = () => resolve(reader.result.split(',')[1]);
         reader.onerror = reject;
         reader.readAsDataURL(file);
     });
@@ -239,7 +238,7 @@ Struttura richiesta (usa null per i campi non trovati):
         throw new Error(err?.error?.message || 'Errore API Gemini');
     }
 
-    const json  = await res.json();
+    const json = await res.json();
     const testo = json.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
     if (!testo) throw new Error('Risposta Gemini vuota');
 

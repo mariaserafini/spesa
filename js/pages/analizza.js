@@ -6,7 +6,6 @@ async function renderAnalizza(datiIniziali = null) {
     document.getElementById('app').innerHTML = `
         <div class="page-header">
             <h1>Analizza</h1>
-            <p>Seleziona un negozio per vedere cosa conviene comprare lì.</p>
         </div>
 
         <div class="card">

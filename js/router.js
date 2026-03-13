@@ -7,13 +7,13 @@
 // ============================================================
 
 const ROUTES = {
-    'home':           renderHome,
+    'home': renderHome,
     'rileva-manuale': renderRilevaManuale,
-    'rileva-foto':    renderRilevaFoto,
-    'controlla':      renderControlla,
-    'analizza':       renderAnalizza,
-    'spesa':          renderSpesa,
-    'manutenzione':   renderManutenzione,
+    'rileva-foto': renderRilevaFoto,
+    'controlla': renderControlla,
+    'analizza': renderAnalizza,
+    'spesa': renderSpesa,
+    'manutenzione': renderManutenzione,
 };
 
 let paginaCorrente = null;

@@ -6,7 +6,6 @@ async function renderSpesa() {
     document.getElementById('app').innerHTML = `
         <div class="page-header">
             <h1>Lista della spesa</h1>
-            <p>Aggiungi i prodotti che ti mancano e scopri dove conviene comprarli.</p>
         </div>
 
         <!-- AGGIUNGI PRODOTTO -->

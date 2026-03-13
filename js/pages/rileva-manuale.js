@@ -6,7 +6,6 @@ async function renderRilevaManuale(dati = null) {
     document.getElementById('app').innerHTML = `
         <div class="page-header">
             <h1>Rileva manuale</h1>
-            <p>Inserisci i dati del prodotto che hai trovato in negozio.</p>
         </div>
 
         <div class="card">
@@ -150,11 +149,11 @@ async function renderRilevaManuale(dati = null) {
 async function initRilevaManuale(dati = null) {
     // ---- Stato ----
     let prodotti = [];
-    let negozi   = [];
+    let negozi = [];
     let prodottoSelezionato = null;
-    let negozioSelezionato  = null;
+    let negozioSelezionato = null;
     let prodottoNuovo = false;
-    let negozioNuovo  = false;
+    let negozioNuovo = false;
 
     // ---- Carica dati dal db ----
     const [resProdotti, resNegozi] = await Promise.all([
@@ -164,10 +163,10 @@ async function initRilevaManuale(dati = null) {
 
     // DEBUG — rimuovi quando tutto funziona
     console.log('📦 PRODOTTI:', resProdotti.data, '| errore:', resProdotti.error);
-    console.log('🏪 NEGOZI:',   resNegozi.data,   '| errore:', resNegozi.error);
+    console.log('🏪 NEGOZI:', resNegozi.data, '| errore:', resNegozi.error);
 
     prodotti = resProdotti.data || [];
-    negozi   = resNegozi.data   || [];
+    negozi = resNegozi.data || [];
 
     // ---- UI: stato "nuovo" ----
     function impostaNuovoProdotto(attivo) {
@@ -184,11 +183,11 @@ async function initRilevaManuale(dati = null) {
 
     // ---- Autocomplete ----
     creaAutocomplete({
-        input:    document.getElementById('inputNegozio'),
+        input: document.getElementById('inputNegozio'),
         dropdown: document.getElementById('dropdownNegozio'),
-        lista:    negozi,
+        lista: negozi,
         onSelect: (v) => { negozioSelezionato = v; negozioNuovo = false; impostaNuovoNegozio(false); },
-        onNuovo:  (t) => { negozioSelezionato = null; negozioNuovo = !!t; impostaNuovoNegozio(!!t); }
+        onNuovo: (t) => { negozioSelezionato = null; negozioNuovo = !!t; impostaNuovoNegozio(!!t); }
     });
 
     // ---- Autocomplete variante ----
@@ -209,20 +208,20 @@ async function initRilevaManuale(dati = null) {
         variantiAC = listaVarianti;
 
         creaAutocomplete({
-            input:       document.getElementById('inputVariante'),
-            dropdown:    document.getElementById('dropdownVariante'),
-            lista:       listaVarianti,
+            input: document.getElementById('inputVariante'),
+            dropdown: document.getElementById('dropdownVariante'),
+            lista: listaVarianti,
             mostraNuovo: false,
-            onSelect:    (v) => { document.getElementById('inputVariante').value = v.nome; },
-            onNuovo:     () => {}
+            onSelect: (v) => { document.getElementById('inputVariante').value = v.nome; },
+            onNuovo: () => { }
         });
     }
 
     // Aggiorna le varianti quando si seleziona un prodotto esistente
     const acProdottoOriginale = {
-        input:    document.getElementById('inputProdotto'),
+        input: document.getElementById('inputProdotto'),
         dropdown: document.getElementById('dropdownProdotto'),
-        lista:    prodotti,
+        lista: prodotti,
         onSelect: (v) => {
             prodottoSelezionato = v;
             prodottoNuovo = false;
@@ -235,11 +234,11 @@ async function initRilevaManuale(dati = null) {
 
     // ---- Calcolo prezzo per unità in tempo reale ----
     function aggiornaCalcolo() {
-        const prezzo   = parseFloat(document.getElementById('inputPrezzo').value);
+        const prezzo = parseFloat(document.getElementById('inputPrezzo').value);
         const quantita = parseFloat(document.getElementById('inputQuantita').value);
-        const unita    = document.getElementById('inputUnita').value;
-        const box      = document.getElementById('prezzoCalcolato');
-        const val      = document.getElementById('valoreCalcolato');
+        const unita = document.getElementById('inputUnita').value;
+        const box = document.getElementById('prezzoCalcolato');
+        const val = document.getElementById('valoreCalcolato');
 
         if (!isNaN(prezzo) && !isNaN(quantita) && unita) {
             const pu = calcolaPrezzoPer(prezzo, quantita, unita);
@@ -253,20 +252,20 @@ async function initRilevaManuale(dati = null) {
     }
 
     ['inputPrezzo', 'inputQuantita', 'inputUnita'].forEach(id => {
-        document.getElementById(id).addEventListener('input',  aggiornaCalcolo);
+        document.getElementById(id).addEventListener('input', aggiornaCalcolo);
         document.getElementById(id).addEventListener('change', aggiornaCalcolo);
     });
 
     // ---- Reset ----
     function resetForm() {
-        ['inputProdotto','inputNegozio','inputVariante','inputPrezzo','inputQuantita','inputNote']
+        ['inputProdotto', 'inputNegozio', 'inputVariante', 'inputPrezzo', 'inputQuantita', 'inputNote']
             .forEach(id => { document.getElementById(id).value = ''; });
         document.getElementById('inputUnita').value = '';
         document.getElementById('inputPromozione').checked = false;
         prodottoSelezionato = null;
-        negozioSelezionato  = null;
+        negozioSelezionato = null;
         prodottoNuovo = false;
-        negozioNuovo  = false;
+        negozioNuovo = false;
         impostaNuovoProdotto(false);
         impostaNuovoNegozio(false);
         document.getElementById('prezzoCalcolato').classList.remove('visibile');
@@ -319,41 +318,41 @@ async function initRilevaManuale(dati = null) {
             document.querySelector('.card').prepend(banner);
         }
 
-        if (dati.nomeProdotto) document.getElementById('inputProdotto').value    = normalizzaProdotto(dati.nomeProdotto);
-        if (dati.nomeNegozio)  document.getElementById('inputNegozio').value     = normalizzaNegozio(dati.nomeNegozio);
-        if (dati.variante)     document.getElementById('inputVariante').value    = dati.variante.trim().toLowerCase();
-        if (dati.prezzo)       document.getElementById('inputPrezzo').value      = dati.prezzo;
-        if (dati.quantita)     document.getElementById('inputQuantita').value    = dati.quantita;
-        if (dati.unita)        document.getElementById('inputUnita').value       = dati.unita;
-        if (dati.note)         document.getElementById('inputNote').value        = dati.note;
-        if (dati.promozione)   document.getElementById('inputPromozione').checked = dati.promozione;
+        if (dati.nomeProdotto) document.getElementById('inputProdotto').value = normalizzaProdotto(dati.nomeProdotto);
+        if (dati.nomeNegozio) document.getElementById('inputNegozio').value = normalizzaNegozio(dati.nomeNegozio);
+        if (dati.variante) document.getElementById('inputVariante').value = dati.variante.trim().toLowerCase();
+        if (dati.prezzo) document.getElementById('inputPrezzo').value = dati.prezzo;
+        if (dati.quantita) document.getElementById('inputQuantita').value = dati.quantita;
+        if (dati.unita) document.getElementById('inputUnita').value = dati.unita;
+        if (dati.note) document.getElementById('inputNote').value = dati.note;
+        if (dati.promozione) document.getElementById('inputPromozione').checked = dati.promozione;
 
         if (dati.nomeProdotto) risolviProdotto(dati.nomeProdotto);
-        if (dati.nomeNegozio)  risolviNegozio(dati.nomeNegozio);
+        if (dati.nomeNegozio) risolviNegozio(dati.nomeNegozio);
         aggiornaCalcolo();
     }
 
     // ---- Salvataggio ----
     document.getElementById('btnSalva').addEventListener('click', async () => {
-        const msgErr   = document.getElementById('msgErrore');
-        const msgOk    = document.getElementById('msgSuccesso');
-        const msgWarn  = document.getElementById('msgConferma');
+        const msgErr = document.getElementById('msgErrore');
+        const msgOk = document.getElementById('msgSuccesso');
+        const msgWarn = document.getElementById('msgConferma');
         msgErr.classList.remove('visible');
         msgOk.classList.remove('visible');
         msgWarn.classList.remove('visible');
 
         const nomeProdotto = normalizzaProdotto(document.getElementById('inputProdotto').value);
-        const nomeNegozio  = normalizzaNegozio(document.getElementById('inputNegozio').value);
-        const variante     = document.getElementById('inputVariante').value.trim().toLowerCase() || null;
-        const prezzo       = parseFloat(document.getElementById('inputPrezzo').value);
-        const quantita     = parseFloat(document.getElementById('inputQuantita').value);
-        const unita        = document.getElementById('inputUnita').value;
-        const promozione   = document.getElementById('inputPromozione').checked;
-        const note         = document.getElementById('inputNote').value.trim() || null;
+        const nomeNegozio = normalizzaNegozio(document.getElementById('inputNegozio').value);
+        const variante = document.getElementById('inputVariante').value.trim().toLowerCase() || null;
+        const prezzo = parseFloat(document.getElementById('inputPrezzo').value);
+        const quantita = parseFloat(document.getElementById('inputQuantita').value);
+        const unita = document.getElementById('inputUnita').value;
+        const promozione = document.getElementById('inputPromozione').checked;
+        const note = document.getElementById('inputNote').value.trim() || null;
 
         // Aggiorna i campi visibili con i valori normalizzati
         document.getElementById('inputProdotto').value = nomeProdotto;
-        document.getElementById('inputNegozio').value  = nomeNegozio;
+        document.getElementById('inputNegozio').value = nomeNegozio;
 
         // Risolvi prodotto e negozio prima della validazione
         risolviProdotto(nomeProdotto);
@@ -361,14 +360,14 @@ async function initRilevaManuale(dati = null) {
 
         // Validazione
         const errori = [];
-        if (!nomeProdotto)                    errori.push('Inserisci il nome del prodotto.');
-        if (!nomeNegozio)                     errori.push('Inserisci il nome del negozio.');
-        if (isNaN(prezzo) || prezzo <= 0)     errori.push('Inserisci un prezzo valido.');
+        if (!nomeProdotto) errori.push('Inserisci il nome del prodotto.');
+        if (!nomeNegozio) errori.push('Inserisci il nome del negozio.');
+        if (isNaN(prezzo) || prezzo <= 0) errori.push('Inserisci un prezzo valido.');
         if (isNaN(quantita) || quantita <= 0) errori.push('Inserisci una quantità valida.');
-        if (!unita)                           errori.push("Seleziona l'unità di misura.");
+        if (!unita) errori.push("Seleziona l'unità di misura.");
         if (prodottoNuovo) {
             if (!document.getElementById('nuovaCategoria').value) errori.push('Seleziona la categoria del nuovo prodotto.');
-            if (!document.getElementById('nuovaUnita').value)     errori.push("Seleziona l'unità di confronto del nuovo prodotto.");
+            if (!document.getElementById('nuovaUnita').value) errori.push("Seleziona l'unità di confronto del nuovo prodotto.");
         }
 
         if (errori.length) {
@@ -407,19 +406,19 @@ async function initRilevaManuale(dati = null) {
             }
 
             const prezzounita = calcolaPrezzoPer(prezzo, quantita, unita);
-            const unitaLabel  = UNITA_BASE[unita] || unita;
-            const payload     = { fkprodotto, fknegozio, variante, prezzo, quantita, unita, prezzounita, promozione, note };
+            const unitaLabel = UNITA_BASE[unita] || unita;
+            const payload = { fkprodotto, fknegozio, variante, prezzo, quantita, unita, prezzounita, promozione, note };
 
             // 3. Controlla se esiste già una rilevazione per questa combinazione
             let q = supabaseClient
                 .from('prezzi')
                 .select('id, prezzo, quantita, unita, datarilevazione')
                 .eq('fkprodotto', fkprodotto)
-                .eq('fknegozio',  fknegozio)
+                .eq('fknegozio', fknegozio)
                 .limit(1);
 
             if (variante) q = q.eq('variante', variante);
-            else          q = q.is('variante', null);
+            else q = q.is('variante', null);
 
             const { data: risultati, error: echeck } = await q;
             if (echeck) throw echeck;
@@ -428,7 +427,7 @@ async function initRilevaManuale(dati = null) {
             if (esistente) {
                 // Mostra pannello di conferma con confronto prezzi
                 const vecchioLabel = `€${parseFloat(esistente.prezzo).toFixed(2)} × ${esistente.quantita}${esistente.unita} — rilevato il ${esistente.datarilevazione}`;
-                const nuovoLabel   = `€${prezzo.toFixed(2)} × ${quantita}${unita} (€${prezzounita.toFixed(2)}/${unitaLabel})`;
+                const nuovoLabel = `€${prezzo.toFixed(2)} × ${quantita}${unita} (€${prezzounita.toFixed(2)}/${unitaLabel})`;
 
                 msgWarn.innerHTML = `
                     <div class="warn-title">⚠️ Rilevazione già esistente</div>

@@ -17,13 +17,13 @@ function normalizzaNegozio(testo) {
 
 // ---- Conversione unità → unità base ----
 const CONVERSIONI = {
-    g:  { base: 'kg', fattore: 0.001 },
+    g: { base: 'kg', fattore: 0.001 },
     kg: { base: 'kg', fattore: 1 },
     mg: { base: 'kg', fattore: 0.000001 },
-    ml: { base: 'l',  fattore: 0.001 },
-    cl: { base: 'l',  fattore: 0.01 },
-    dl: { base: 'l',  fattore: 0.1 },
-    l:  { base: 'l',  fattore: 1 },
+    ml: { base: 'l', fattore: 0.001 },
+    cl: { base: 'l', fattore: 0.01 },
+    dl: { base: 'l', fattore: 0.1 },
+    l: { base: 'l', fattore: 1 },
     pz: { base: 'pz', fattore: 1 },
 };
 
@@ -47,7 +47,7 @@ function creaAutocomplete({ input, dropdown, lista, onSelect, onNuovo, mostraNuo
         selezioneIdx = -1;
         if (!q) { chiudi(); return; }
 
-        const filtrate   = lista.filter(v => v.nome.toLowerCase().includes(q));
+        const filtrate = lista.filter(v => v.nome.toLowerCase().includes(q));
         const corrispondeEsatto = lista.some(v => v.nome.toLowerCase() === q);
 
         // Mostra i risultati parziali
@@ -100,7 +100,7 @@ function creaAutocomplete({ input, dropdown, lista, onSelect, onNuovo, mostraNuo
 
     input.addEventListener('keydown', e => {
         if (e.key === 'ArrowDown') { e.preventDefault(); naviga(1); }
-        if (e.key === 'ArrowUp')   { e.preventDefault(); naviga(-1); }
+        if (e.key === 'ArrowUp') { e.preventDefault(); naviga(-1); }
         if (e.key === 'Enter') {
             const items = dropdown.querySelectorAll('.ac-item');
             if (selezioneIdx >= 0 && items[selezioneIdx]) {
@@ -111,6 +111,6 @@ function creaAutocomplete({ input, dropdown, lista, onSelect, onNuovo, mostraNuo
         if (e.key === 'Escape') chiudi();
     });
 
-    input.addEventListener('blur',  () => setTimeout(chiudi, 150));
+    input.addEventListener('blur', () => setTimeout(chiudi, 150));
     input.addEventListener('focus', () => { if (input.value) aggiorna(input.value); });
 }
