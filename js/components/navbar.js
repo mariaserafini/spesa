@@ -1,6 +1,6 @@
 function renderNavbar() {
     const navbar = document.getElementById('navbar');
-    const mobileMenu = document.getElementById('mobileMenu');
+    //const mobileMenu = document.getElementById('mobileMenu');
 
     navbar.innerHTML = `
         <a class="nav-logo" onclick="navigate('home')" title="Home">🏷️</a>
