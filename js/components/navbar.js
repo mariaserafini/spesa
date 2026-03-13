@@ -35,18 +35,18 @@ function renderNavbar() {
             <span></span><span></span><span></span>
         </button>
     `;
-
-    mobileMenu.innerHTML = `
-        <a onclick="navigate('home');          chiudiMenu()">🏠 Home</a>
-        <a onclick="navigate('manutenzione');  chiudiMenu()">🔧 Manutenzione</a>
-        <button onclick="logout()">🚪 Esci</button>
-    `;
-
-    document.getElementById('hamburger').addEventListener('click', () => {
-        mobileMenu.classList.toggle('open');
-    });
-}
-
-function chiudiMenu() {
-    document.getElementById('mobileMenu').classList.remove('open');
+    /*
+        mobileMenu.innerHTML = `
+            <a onclick="navigate('home');          chiudiMenu()">🏠 Home</a>
+            <a onclick="navigate('manutenzione');  chiudiMenu()">🔧 Manutenzione</a>
+            <button onclick="logout()">🚪 Esci</button>
+        `;
+    
+        document.getElementById('hamburger').addEventListener('click', () => {
+            mobileMenu.classList.toggle('open');
+        });
+    }
+    
+    function chiudiMenu() {
+        document.getElementById('mobileMenu').classList.remove('open');*/
 }

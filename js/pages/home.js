@@ -50,7 +50,6 @@ async function renderHome() {
         const label = negozio.filiale ? `${negozio.nome}<span class="home-filiale">${negozio.filiale}</span>` : negozio.nome;
         return `
             <button class="home-negozio-btn" data-id="${negozio.id}">
-                <div class="home-negozio-icon">🏪</div>
                 <div class="home-negozio-nome">${label}</div>
                 <div class="home-negozio-count">${count} rilevazioni</div>
             </button>
