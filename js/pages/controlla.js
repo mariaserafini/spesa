@@ -140,7 +140,7 @@ async function cercaRilevazioni(prodotto) {
             const { testo: tempoTesto, badge: tempoBadge } = calcolaEtaTesto(r.datarilevazione);
             const promoHtml = r.promozione ? `<span class="badge badge-promo">promo</span>` : '';
             const bestHtml = i === 0 ? `<span class="badge badge-best">migliore</span>` : '';
-            const prezzoUnitaLabel = `€ ${parseFloat(r.prezzounita).toFixed(2)} / ${unitaBase}`;
+            const prezzoUnitaLabel = `€ ${parseFloat(r.prezzounita).toFixed(2)}`;
             const noteHtml = r.note ? `<div class="controlla-note">${r.note}</div>` : '';
 
             return `
