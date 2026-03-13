@@ -28,13 +28,12 @@ function renderNavbar() {
                 </div>
             </li>
         </ul>
-
-        <!-- Mobile: hamburger solo per il sottomenu ··· -->
+    `;
+    /*
+       <!-- Mobile: hamburger solo per il sottomenu ··· -->
         <button class="hamburger" id="hamburger" aria-label="Menu">
             <span></span><span></span><span></span>
         </button>
-    `;
-    /*
         mobileMenu.innerHTML = `
             <a onclick="navigate('home');          chiudiMenu()">🏠 Home</a>
             <a onclick="navigate('manutenzione');  chiudiMenu()">🔧 Manutenzione</a>
