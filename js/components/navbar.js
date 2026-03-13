@@ -22,7 +22,6 @@ function renderNavbar() {
                 <a href="#" class="nav-dropdown-trigger">··· ▾</a>
                 <div class="dropdown dropdown-right">
                     <div class="dropdown-inner">
-                        <a onclick="navigate('home')">🏠 Home</a>
                         <a onclick="navigate('manutenzione')">🔧 Manutenzione</a>
                         <a onclick="logout()">🚪 Esci</a>
                     </div>
