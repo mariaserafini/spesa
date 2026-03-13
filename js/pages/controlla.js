@@ -75,7 +75,7 @@ async function cercaRilevazioni(prodotto) {
 
     const { data: righe, error } = await supabaseClient
         .from('prezzi')
-        .select('id, variante, prezzo, quantita, unita, prezzounita, promozione, datarilevazione, note, negozi(nome, filiale)')
+        .select('id, variante, prezzo, quantita, unita, prezzounita, promozione, datarilevazione, note, negozi(id, nome, filiale)')
         .eq('fkprodotto', prodotto.id)
         .order('prezzounita', { ascending: true });
 
@@ -104,12 +104,20 @@ async function cercaRilevazioni(prodotto) {
     const unitaBase = prodotto.unita;
 
     contenitore.innerHTML = `
-        <div class="controlla-header" style="margin-top:1.75rem; margin-bottom:1rem">
-            <h2>${prodotto.nome}</h2>
-            <span class="text-muted" style="font-size:.85rem">${prodotto.categoria} · prezzo per ${unitaBase}</span>
+        <div class="analizza-header" style="margin-top:1.75rem; margin-bottom:1rem">
+            <div>
+                <h2>${prodotto.nome}</h2>
+                <span class="text-muted" style="font-size:.85rem">${prodotto.categoria} · prezzo per ${unitaBase}</span>
+            </div>
+            <button class="btn btn-primary btn-sm" id="btnRilevaControlla"
+                    title="Aggiungi una rilevazione per questo prodotto">+ Rileva</button>
         </div>
         <div class="controlla-varianti" id="controllaVarianti"></div>
     `;
+
+    document.getElementById('btnRilevaControlla').addEventListener('click', () => {
+        navigate('rileva-manuale', { nomeProdotto: prodotto.nome });
+    });
 
     const wrap = document.getElementById('controllaVarianti');
 
@@ -126,21 +134,20 @@ async function cercaRilevazioni(prodotto) {
 
         const righeHtml = righeVariante.map((r, i) => {
             const negozioLabel = r.negozi.filiale
-                ? `${r.negozi.nome} <span class="text-muted">(${r.negozi.filiale})</span>`
-                : r.negozi.nome;
+                ? `<button class="btn-link controlla-btn-analizza" data-negozio-id="${r.negozi.id}" data-negozio-nome="${r.negozi.nome}">${r.negozi.nome}</button> <span class="text-muted">(${r.negozi.filiale})</span>`
+                : `<button class="btn-link controlla-btn-analizza" data-negozio-id="${r.negozi.id}" data-negozio-nome="${r.negozi.nome}">${r.negozi.nome}</button>`;
 
             const { testo: tempoTesto, badge: tempoBadge } = calcolaEtaTesto(r.datarilevazione);
             const promoHtml = r.promozione ? `<span class="badge badge-promo">promo</span>` : '';
             const bestHtml = i === 0 ? `<span class="badge badge-best">migliore</span>` : '';
             const prezzoUnitaLabel = `€ ${parseFloat(r.prezzounita).toFixed(2)} / ${unitaBase}`;
             const noteHtml = r.note ? `<div class="controlla-note">${r.note}</div>` : '';
-            const varNote = r.variante ? `<div class="controlla-note">var: ${r.variante}</div>` : '';
 
             return `
                 <tr data-id="${r.id}" class="${i === 0 ? 'controlla-best' : ''}">
                     <td>
                         <div class="controlla-negozio">${negozioLabel}</div>
-                       ${noteHtml}
+                        ${noteHtml}
                     </td>
                     <td class="controlla-prezzo-unita">${prezzoUnitaLabel}</td>
                     <td class="controlla-prezzo-formato">
@@ -223,6 +230,13 @@ async function cercaRilevazioni(prodotto) {
 
     // ---- Listener pulsanti ----
     wrap.addEventListener('click', async (e) => {
+
+        // Vai ad Analizza negozio
+        if (e.target.closest('.controlla-btn-analizza')) {
+            const btn = e.target.closest('.controlla-btn-analizza');
+            navigate('analizza', { negozio: { id: parseInt(btn.dataset.negozioId), nome: btn.dataset.negozioNome, filiale: null } });
+            return;
+        }
 
         // CONFERMA
         if (e.target.classList.contains('btn-conferma')) {
@@ -322,8 +336,8 @@ function calcolaEtaTesto(dataStr) {
     else testo = `${anni} ${anni === 1 ? 'anno' : 'anni'} fa`;
 
     let badge = '';
-    if (giorni >= 365) badge = `<span class="badge badge-vecchio">vecchio</span>`;
-    else if (giorni >= 180) badge = `<span class="badge badge-inattendibile">non attendibile</span>`;
+    if (giorni >= 365) badge = `<span class="badge badge-vecchio">non attendibile</span>`;
+    else if (giorni >= 180) badge = `<span class="badge badge-inattendibile">da verificare</span>`;
 
     return { testo, badge };
 }

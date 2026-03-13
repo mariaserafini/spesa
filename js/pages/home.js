@@ -1,145 +1,68 @@
 // ============================================================
-// HOME.JS — Dashboard Rilevazioni Vecchie e Statistiche Negozi
+// HOME.JS — top 3 negozi per rilevazioni con link ad analizza
 // ============================================================
 
 async function renderHome() {
-    const contenitore = document.getElementById('app');
-
-    // Stato iniziale di caricamento
-    contenitore.innerHTML = `
-        <div class="foto-loading" style="display:flex; justify-content: center; margin-top: 2rem;">
-            <div class="spinner"></div>
-            <span>Caricamento dashboard...</span>
+    document.getElementById('app').innerHTML = `
+        <div class="page-header">
+            <h1>Price Tracker</h1>
+            <p>I negozi con più rilevazioni recenti.</p>
+        </div>
+        <div class="home-negozi" id="homeNegozi">
+            <div class="foto-loading" style="display:flex">
+                <div class="spinner"></div>
+                <span>Carico…</span>
+            </div>
         </div>
     `;
 
-    try {
-        const oggi = new Date();
-        const seiMesiFa = new Date();
-        seiMesiFa.setMonth(seiMesiFa.getMonth() - 6);
-        const unAnnoFa = new Date();
-        unAnnoFa.setFullYear(unAnnoFa.getFullYear() - 1);
+    // Conta rilevazioni per negozio (ultimi 6 mesi)
+    const seimesifa = new Date();
+    seimesifa.setMonth(seimesifa.getMonth() - 6);
+    const soglia = seimesifa.toISOString().slice(0, 10);
 
-        const data6m = seiMesiFa.toISOString().slice(0, 10);
-        const data12m = unAnnoFa.toISOString().slice(0, 10);
+    const { data: righe } = await supabaseClient
+        .from('prezzi')
+        .select('fknegozio, negozi(id, nome, filiale)')
+        .gte('datarilevazione', soglia);
 
-        // 1. Recupero le 4 rilevazioni più vecchie in assoluto
-        const { data: vecchie, error: errV } = await supabaseClient
-            .from('prezzi')
-            .select('*, prodotti(nome, unita), negozi(nome, filiale)')
-            .order('datarilevazione', { ascending: true })
-            .limit(4);
+    const wrap = document.getElementById('homeNegozi');
 
-        if (errV) throw errV;
-
-        // 2. Recupero tutte le rilevazioni antecedenti a 6 mesi per calcolare i negozi
-        const { data: tutteVecchie, error: errT } = await supabaseClient
-            .from('prezzi')
-            .select('fknegozio, datarilevazione, negozi(nome, filiale)')
-            .lt('datarilevazione', data6m);
-
-        if (errT) throw errT;
-
-        // Elaborazione statistiche negozi
-        const statsNegozi = {};
-        tutteVecchie.forEach(r => {
-            const id = r.fknegozio;
-            if (!statsNegozi[id]) {
-                statsNegozi[id] = {
-                    nome: r.negozi.filiale ? `${r.negozi.nome} (${r.negozi.filiale})` : r.negozi.nome,
-                    vecchie: 0,      // > 1 anno
-                    menoRecenti: 0   // 6-12 mesi
-                };
-            }
-            if (r.datarilevazione < data12m) {
-                statsNegozi[id].vecchie++;
-            } else {
-                statsNegozi[id].menoRecenti++;
-            }
-        });
-
-        // Ordino i negozi per numero totale di rilevazioni non aggiornate e prendo i primi 4
-        const topNegozi = Object.values(statsNegozi)
-            .sort((a, b) => (b.vecchie + b.menoRecenti) - (a.vecchie + a.menoRecenti))
-            .slice(0, 4);
-
-        // Rendering finale
-        contenitore.innerHTML = `
-            <div class="page-header">
-                <h1>Da controllare</h1>
-                <p>Panoramica dei dati che necessitano di un aggiornamento.</p>
-            </div>
-
-            <div class="controlla-sezione card" style="margin-bottom: 2rem;">
-                <div class="controlla-variante-titolo">
-                    ⏳ Le 4 rilevazioni più vecchie
-                </div>
-                <div class="table-responsive">
-                    <table class="results-table">
-                        <thead>
-                            <tr>
-                                <th>Prodotto / Negozio</th>
-                                <th>Prezzo</th>
-                                <th style="text-align:right">Data</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${vecchie.map(r => `
-                                <tr>
-                                    <td>
-                                        <div class="controlla-negozio">${r.prodotti.nome}</div>
-                                        <div class="controlla-note">${r.negozi.nome} ${r.negozi.filiale ? '(' + r.negozi.filiale + ')' : ''}</div>
-                                    </td>
-                                    <td>
-                                        <div class="controlla-prezzo-unita">€ ${parseFloat(r.prezzounita).toFixed(2)}</div>
-                                        <div class="controlla-prezzo-formato">${r.quantita}${r.unita}</div>
-                                    </td>
-                                    <td style="text-align:right">
-                                        <span class="badge badge-vecchio">${calcolaEtaTesto(r.datarilevazione).testo}</span>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="controlla-sezione card">
-                <div class="controlla-variante-titolo controlla-variante-base">
-                    🏢 Negozi meno aggiornati
-                </div>
-                <div class="table-responsive">
-                    <table class="results-table">
-                        <thead>
-                            <tr>
-                                <th>Negozio</th>
-                                <th style="text-align:center">> 1 Anno</th>
-                                <th style="text-align:center">6-12 Mesi</th>
-                                <th style="text-align:right">Totale</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${topNegozi.length > 0 ? topNegozi.map(n => `
-                                <tr>
-                                    <td><div class="controlla-negozio">${n.nome}</div></td>
-                                    <td style="text-align:center"><span class="badge badge-vecchio">${n.vecchie}</span></td>
-                                    <td style="text-align:center"><span class="badge badge-inattendibile">${n.menoRecenti}</span></td>
-                                    <td style="text-align:right; font-weight:700">${n.vecchie + n.menoRecenti}</td>
-                                </tr>
-                            `).join('') : '<tr><td colspan="4" class="text-muted">Nessun dato da segnalare</td></tr>'}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <div class="form-actions mt-3">
-                <button class="btn btn-primary" onclick="navigate('controlla')">🔍 Vai a Controlla</button>
-                <button class="btn btn-ghost" onclick="navigate('analizza')">📊 Vai ad Analizza</button>
-            </div>
-        `;
-
-    } catch (error) {
-        console.error(error);
-        contenitore.innerHTML = `<div class="msg msg-error visible">Errore nel caricamento della dashboard.</div>`;
+    if (!righe || righe.length === 0) {
+        wrap.innerHTML = `<p class="text-muted">Nessuna rilevazione negli ultimi 6 mesi.</p>`;
+        return;
     }
+
+    // Conta per negozio
+    const conteggi = {};
+    const nomiNegozi = {};
+    for (const r of righe) {
+        const id = r.fknegozio;
+        conteggi[id] = (conteggi[id] || 0) + 1;
+        nomiNegozi[id] = r.negozi;
+    }
+
+    const top3 = Object.entries(conteggi)
+        .sort((a, b) => b[1] - a[1])
+        .map(([id, count]) => ({ negozio: nomiNegozi[id], count }));
+
+    wrap.innerHTML = top3.map(({ negozio, count }) => {
+        const label = negozio.filiale ? `${negozio.nome}<span class="home-filiale">${negozio.filiale}</span>` : negozio.nome;
+        return `
+            <button class="home-negozio-btn" data-id="${negozio.id}">
+                <div class="home-negozio-icon">🏪</div>
+                <div class="home-negozio-nome">${label}</div>
+                <div class="home-negozio-count">${count} rilevazioni</div>
+            </button>
+        `;
+    }).join('');
+
+    // Mappa id → oggetto negozio per navigare
+    wrap.addEventListener('click', e => {
+        const btn = e.target.closest('.home-negozio-btn');
+        if (!btn) return;
+        const id = parseInt(btn.dataset.id);
+        const { negozio } = top3.find(t => t.negozio.id === id);
+        navigate('analizza', { negozio });
+    });
 }

@@ -12,6 +12,8 @@ const ROUTES = {
     'rileva-foto':    renderRilevaFoto,
     'controlla':      renderControlla,
     'analizza':       renderAnalizza,
+    'spesa':          renderSpesa,
+    'manutenzione':   renderManutenzione,
 };
 
 let paginaCorrente = null;

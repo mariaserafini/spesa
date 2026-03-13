@@ -142,7 +142,7 @@ function initRilevaFoto() {
 
     // ---- Vai al form ----
     document.getElementById('btnUsaDati').addEventListener('click', () => {
-        if (datiEstratti) navigate('rileva-manuale', datiEstratti);
+        if (datiEstratti) navigate('rileva-manuale', { ...datiEstratti, daFoto: true });
     });
 
     document.getElementById('btnRiprova').addEventListener('click', () => {

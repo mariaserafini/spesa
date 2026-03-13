@@ -311,11 +311,13 @@ async function initRilevaManuale(dati = null) {
 
     // ---- Pre-compila il form se arrivano dati da rileva-foto ----
     if (dati) {
-        const banner = document.createElement('div');
-        banner.className = 'msg msg-success visible';
-        banner.style.marginBottom = '1rem';
-        banner.innerHTML = '📷 Dati estratti dalla foto — controlla e correggi se necessario prima di salvare.';
-        document.querySelector('.card').prepend(banner);
+        if (dati.daFoto) {
+            const banner = document.createElement('div');
+            banner.className = 'msg msg-success visible';
+            banner.style.marginBottom = '1rem';
+            banner.innerHTML = '📷 Dati estratti dalla foto — controlla e correggi se necessario prima di salvare.';
+            document.querySelector('.card').prepend(banner);
+        }
 
         if (dati.nomeProdotto) document.getElementById('inputProdotto').value    = normalizzaProdotto(dati.nomeProdotto);
         if (dati.nomeNegozio)  document.getElementById('inputNegozio').value     = normalizzaNegozio(dati.nomeNegozio);
