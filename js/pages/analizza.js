@@ -256,7 +256,7 @@ async function analizzaNegozio(negozio) {
                     </td>
                     <td class="controlla-prezzo-unita">€ ${parseFloat(item.prezzounita).toFixed(2)} / ${item.unitaBase}</td>
                     <td class="controlla-prezzo-formato">
-                        ${item.quantita}${item.unita} (€ ${parseFloat(item.prezzo).toFixed(2)})
+                        ${item.quantita}${item.unita} <br> (€ ${parseFloat(item.prezzo).toFixed(2)})
                     </td>
                     <td class="controlla-col-azioni">
                         <div class="controlla-tempo">${tempoTesto} ${tempoBadge}</div>

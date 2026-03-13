@@ -151,7 +151,7 @@ async function cercaRilevazioni(prodotto) {
                     </td>
                     <td class="controlla-prezzo-unita">${prezzoUnitaLabel}</td>
                     <td class="controlla-prezzo-formato">
-                        ${r.quantita}${r.unita} (€ ${parseFloat(r.prezzo).toFixed(2)})
+                        ${r.quantita}${r.unita} <br> (€ ${parseFloat(r.prezzo).toFixed(2)})
                     </td>
                     <td class="controlla-col-azioni">
                         <div class="controlla-tempo">${tempoTesto} ${tempoBadge}</div>
