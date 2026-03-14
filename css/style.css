@@ -1818,44 +1818,56 @@ body.login-page {
    ============================================================ */
 @media (max-width: 600px) {
 
-    /* Padding celle ridotto */
-    .controlla-table th,
-    .controlla-table td {
-        padding: .4rem .4rem;
+    /* Layout fisso: le larghezze sono controllate da noi, non dal contenuto */
+    .controlla-table {
+        table-layout: fixed;
+        width: 100%;
     }
 
-    /* Nascondi solo la colonna Formato (3a) — le azioni restano visibili */
+    /* Colonne: Prodotto 38% | Prezzo 28% | Formato 0 (nascosto) | Azioni 34% */
+    .controlla-table th:nth-child(1),
+    .controlla-table td:nth-child(1) {
+        width: 38%;
+    }
+
+    .controlla-table th:nth-child(2),
+    .controlla-table td:nth-child(2) {
+        width: 28%;
+    }
+
+    /* Formato nascosto su mobile — il peso appare sotto il prezzo (vedi .controlla-prezzo-mobile) */
     .controlla-table th:nth-child(3),
     .controlla-table td:nth-child(3) {
         display: none;
     }
 
-    /* Prima colonna: 45% larghezza, wrap per parola (MAI per lettera) */
-    .controlla-table td:first-child,
-    .controlla-table th:first-child {
-        width: 45%;
+    .controlla-table th:nth-child(4),
+    .controlla-table td:nth-child(4) {
+        width: 34%;
+    }
+
+    /* Celle: padding ridotto, testo va a capo per parola intera */
+    .controlla-table th,
+    .controlla-table td {
+        padding: .4rem .35rem;
         word-break: normal;
         overflow-wrap: break-word;
         hyphens: none;
         white-space: normal;
     }
 
-    /* Seconda colonna: prezzo */
-    .controlla-table td:nth-child(2),
-    .controlla-table th:nth-child(2) {
-        width: auto;
-        white-space: nowrap;
-    }
-
-    /* Quarta colonna: azioni compatte */
-    .controlla-table td:nth-child(4),
-    .controlla-table th:nth-child(4) {
-        white-space: nowrap;
-    }
-
-    /* Prezzo */
+    /* Prezzo al kg */
     .controlla-prezzo-unita {
         font-size: .85rem;
+        white-space: nowrap;
+    }
+
+    /* Formato mobile: peso confezione sotto il prezzo */
+    .controlla-formato-mobile {
+        display: block;
+        font-size: .72rem;
+        color: var(--muted);
+        white-space: nowrap;
     }
 
     /* Scarto % */
@@ -1863,15 +1875,16 @@ body.login-page {
         font-size: .68rem;
     }
 
-    /* Pulsanti più compatti */
+    /* Azioni compatte */
     .controlla-badges-row {
         gap: .2rem;
         flex-wrap: nowrap;
+        justify-content: flex-end;
     }
 
     .btn-azione {
-        width: 24px;
-        height: 24px;
+        width: 26px;
+        height: 26px;
         font-size: .8rem;
     }
 
@@ -1880,16 +1893,14 @@ body.login-page {
         padding: .1rem .3rem;
     }
 
-    .badge-best,
-    .badge-promo {
+    .badge-best {
         display: none;
     }
 
-    /* nasconde badge non essenziali */
-
-    /* Tempo rilevazione: più compatto */
+    /* Tempo */
     .controlla-tempo {
         font-size: .72rem;
+        white-space: nowrap;
     }
 
     .badge-inattendibile,
@@ -1897,20 +1908,19 @@ body.login-page {
         font-size: .62rem;
     }
 
-    /* Nome prodotto/negozio cliccabile: non sillabato */
+    /* Nome cliccabile */
     .btn-nome {
         word-break: normal;
         hyphens: none;
     }
 
-    /* analizza-nome-row: badge non va mai su riga diversa dal nome */
+    /* analizza-nome-row */
     .analizza-nome-row {
         flex-wrap: nowrap;
     }
 
     .analizza-nome-row .btn-nome {
-        overflow-wrap: break-word;
-        hyphens: none;
         min-width: 0;
+        overflow-wrap: break-word;
     }
 }

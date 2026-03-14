@@ -226,7 +226,7 @@ async function initSpesa() {
             if (!migliore) {
                 negozioColHtml = `<span class="text-muted" style="font-size:.82rem">Nessun prezzo recente</span>`;
             } else {
-                negozioColHtml = `<button class="btn-nome spea-btn-analizza spesa-btn-analizza" data-negozio-id="${migliore.negozioId}" data-negozio-nome="${migliore.negozioNome}" style="font-weight:600;color:var(--accent)">${migliore.negozioNome}</button>`;
+                negozioColHtml = `<button class="btn-nome spesa-btn-analizza" data-negozio-id="${migliore.negozioId}" data-negozio-nome="${migliore.negozioNome}" style="font-weight:600;color:var(--accent)">${migliore.negozioNome}</button>`;
                 if (altri.length > 0) {
                     negozioColHtml += altri.map(a => {
                         const pct = Math.round((a.prezzounita - migliore.prezzounita) / migliore.prezzounita * 100);
@@ -304,7 +304,7 @@ async function initSpesa() {
                         <button class="btn-nome spesa-btn-controlla controlla-negozio" data-prodotto-nome="${item.nome}">${item.nome}</button>
                         ${varLabel}
                     </td>
-                    <td class="controlla-prezzo-unita">${prezzoUnitaHtml}</td>
+                    <td class="controlla-prezzo-unita">${prezzoUnitaHtml}${formatoMobile}</td>
                     <td class="controlla-prezzo-formato">${formatoHtml}</td>
                     <td class="controlla-col-azioni">
                         ${negozioColHtml}
@@ -495,6 +495,7 @@ async function initSpesa() {
                 const formatoHtml = migliore
                     ? `${migliore.quantita}${migliore.unita}<br>(€ ${parseFloat(migliore.prezzo).toFixed(2)})`
                     : '';
+                const formatoMobile = migliore?.quantita ? `<span class="controlla-formato-mobile">${migliore.quantita}${migliore.unita}</span>` : '';
 
                 const azioniHtml = `
                     <div class="controlla-badges-row">
@@ -557,7 +558,7 @@ async function initSpesa() {
                             <button class="btn-nome spesa-btn-controlla controlla-negozio" data-prodotto-nome="${item.nome}">${item.nome}</button>
                             ${varLabel}
                         </td>
-                        <td class="controlla-prezzo-unita">${prezzoUnitaHtml}</td>
+                        <td class="controlla-prezzo-unita">${prezzoUnitaHtml}${formatoMobile}</td>
                         <td class="controlla-prezzo-formato">${formatoHtml}</td>
                         <td class="controlla-col-azioni">${azioniHtml}</td>
                     </tr>

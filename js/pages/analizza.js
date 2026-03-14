@@ -241,6 +241,7 @@ async function analizzaNegozio(negozio) {
             const scartoPct = item.min && item.prezzounita > item.min.prezzounita
                 ? `<div class="controlla-scarto">+${Math.round((item.prezzounita - item.min.prezzounita) / item.min.prezzounita * 100)}%</div>`
                 : '';
+            const formatoMobile = item.quantita ? `<span class="controlla-formato-mobile">${item.quantita}${item.unita}</span>` : '';
 
             let minHtml = '';
             if (mostraMin && item.min) {
