@@ -340,10 +340,6 @@ p {
     }
 }
 
-.form-grid .full-width {
-    grid-column: 1 / -1;
-}
-
 .field {
     display: flex;
     flex-direction: column;
@@ -728,57 +724,10 @@ textarea {
     flex-wrap: wrap;
 }
 
-/* ============================================================
-   HOME — action cards
-   ============================================================ */
-.home-hero {
-    margin-bottom: 2rem;
-}
-
-.home-hero p {
-    margin-top: .4rem;
-}
-
 .actions {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
     gap: .75rem;
-}
-
-.action-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 1.25rem 1rem;
-    text-decoration: none;
-    color: var(--text);
-    cursor: pointer;
-    transition: border-color .18s, box-shadow .18s, transform .15s;
-    display: flex;
-    flex-direction: column;
-    gap: .45rem;
-}
-
-.action-card:hover {
-    border-color: var(--accent);
-    box-shadow: 0 4px 16px rgba(196, 127, 23, .12);
-    transform: translateY(-2px);
-}
-
-.action-icon {
-    font-size: 1.4rem;
-}
-
-.action-title {
-    font-family: 'Work Sans', sans-serif;
-    font-weight: 700;
-    font-size: .95rem;
-}
-
-.action-desc {
-    color: var(--muted);
-    font-size: .8rem;
-    line-height: 1.4;
 }
 
 /* ============================================================
@@ -978,21 +927,8 @@ body.login-page {
     font-size: .875rem;
 }
 
-.text-accent {
-    color: var(--accent);
-    font-weight: 500;
-}
-
-.mt-1 {
-    margin-top: .5rem;
-}
-
 .mt-2 {
     margin-top: 1rem;
-}
-
-.mt-3 {
-    margin-top: 1.5rem;
 }
 
 /* ============================================================
@@ -1224,16 +1160,6 @@ body.login-page {
     overflow: hidden;
 }
 
-.analizza-box-titolo {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-weight: 700;
-    font-size: .88rem;
-    padding: .65rem 1rem;
-    border-bottom: 1px solid rgba(0, 0, 0, .07);
-}
-
 .analizza-box-count {
     background: rgba(0, 0, 0, .1);
     color: inherit;
@@ -1245,26 +1171,6 @@ body.login-page {
     text-align: center;
 }
 
-.analizza-righe {
-    padding: .5rem 0;
-}
-
-.analizza-riga {
-    padding: .45rem 1rem;
-    border-bottom: 1px solid rgba(0, 0, 0, .04);
-}
-
-.analizza-riga:last-child {
-    border-bottom: none;
-}
-
-.analizza-riga-main {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: .5rem;
-}
-
 .analizza-nome {
     font-size: .9rem;
     font-weight: 500;
@@ -1273,34 +1179,6 @@ body.login-page {
     align-items: center;
     gap: .35rem;
     flex-wrap: wrap;
-}
-
-.analizza-variante {
-    font-size: .75rem;
-    font-weight: 400;
-    color: var(--muted);
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: .05rem .35rem;
-}
-
-.analizza-prezzo {
-    font-family: 'Work Sans', sans-serif;
-    font-weight: 600;
-    font-size: .88rem;
-    color: var(--accent);
-    white-space: nowrap;
-}
-
-.analizza-min {
-    font-size: .75rem;
-    color: var(--muted);
-    margin-top: .2rem;
-}
-
-.analizza-min strong {
-    color: var(--text-2);
 }
 
 .analizza-count {
@@ -1333,30 +1211,6 @@ body.login-page {
     cursor: default;
 }
 
-/* Colori box */
-.box-verde .analizza-box-titolo {
-    background: #f0f7ee;
-    color: #276228;
-    border-bottom-color: #c6e0b4;
-}
-
-.box-giallo .analizza-box-titolo {
-    background: #fffdf0;
-    color: #856404;
-    border-bottom-color: #ffe08a;
-}
-
-.box-rosso .analizza-box-titolo {
-    background: #fef2f2;
-    color: #9b1c1c;
-    border-bottom-color: #f5c0c0;
-}
-
-.box-grigio .analizza-box-titolo {
-    background: var(--surface-2);
-    color: var(--text-2);
-}
-
 /* ============================================================
    HOME — top negozi
    ============================================================ */
@@ -1384,10 +1238,6 @@ body.login-page {
 .home-negozio-btn:hover {
     box-shadow: 0 4px 16px rgba(0, 0, 0, .08);
     border-color: var(--accent);
-}
-
-.home-negozio-icon {
-    font-size: 2rem;
 }
 
 .home-negozio-nome {
@@ -1519,177 +1369,6 @@ body.login-page {
     font-weight: 600;
 }
 
-/* Vista per prodotto */
-.spesa-lista-prodotti {
-    display: flex;
-    flex-direction: column;
-    gap: .75rem;
-}
-
-.spesa-riga {
-    padding: .85rem 1rem !important;
-}
-
-.spesa-riga-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: .4rem;
-}
-
-.spesa-prodotto-nome {
-    font-weight: 700;
-    font-size: .95rem;
-    color: var(--text);
-}
-
-.btn-rimuovi-spesa {
-    background: none;
-    border: none;
-    color: var(--muted);
-    cursor: pointer;
-    font-size: .8rem;
-    padding: .1rem .3rem;
-    border-radius: var(--radius-sm);
-    line-height: 1;
-}
-
-.btn-rimuovi-spesa:hover {
-    background: #fee2e2;
-    color: #9b1c1c;
-}
-
-.spesa-migliore {
-    display: flex;
-    align-items: center;
-    gap: .4rem;
-    font-size: .88rem;
-    flex-wrap: wrap;
-}
-
-.spesa-negozio-nome {
-    font-weight: 600;
-    color: var(--accent);
-}
-
-.spesa-prezzo {
-    color: var(--accent);
-    font-weight: 700;
-    font-size: .85rem;
-    margin-left: auto;
-}
-
-.spesa-alternativa {
-    display: flex;
-    align-items: center;
-    gap: .4rem;
-    font-size: .8rem;
-    color: var(--text-2);
-    margin-top: .2rem;
-    flex-wrap: wrap;
-}
-
-.spesa-prezzo-alt {
-    color: var(--muted);
-    margin-left: auto;
-}
-
-.spesa-no-prezzo {
-    font-size: .82rem;
-}
-
-/* Vista per negozio */
-.spesa-negozio-box {
-    padding: 0 !important;
-    overflow: hidden;
-    margin-bottom: .75rem;
-}
-
-.spesa-negozio-titolo {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-weight: 700;
-    font-size: .88rem;
-    padding: .6rem 1rem;
-    background: var(--surface-2);
-    border-bottom: 1px solid var(--border);
-}
-
-.spesa-negozio-lista {
-    padding: .25rem 0;
-}
-
-.spesa-negozio-riga {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: .4rem 1rem;
-    font-size: .88rem;
-    border-bottom: 1px solid var(--border);
-    gap: .5rem;
-}
-
-.spesa-negozio-riga:last-child {
-    border-bottom: none;
-}
-
-/* ---- Edit box inline in analizza ---- */
-.analizza-edit-box {
-    margin-top: .6rem;
-    padding-top: .6rem;
-    border-top: 1px solid var(--border);
-}
-
-.analizza-tempo-riga {
-    margin-top: .15rem;
-}
-
-/* ---- Layout due colonne riga analizza ---- */
-.analizza-riga-main {
-    display: flex;
-    gap: .75rem;
-    align-items: flex-start;
-}
-
-.analizza-col-sinistra {
-    flex: 1;
-    min-width: 0;
-}
-
-.analizza-col-destra {
-    flex-shrink: 0;
-    text-align: right;
-}
-
-.analizza-col-destra-top {
-    display: flex;
-    align-items: center;
-    gap: .4rem;
-    justify-content: flex-end;
-}
-
-.analizza-sub {
-    font-size: .76rem;
-    color: var(--muted);
-    margin-top: .1rem;
-}
-
-/* ---- Azioni riga spesa ---- */
-.spesa-azioni {
-    display: flex;
-    align-items: center;
-    gap: .25rem;
-    flex-shrink: 0;
-}
-
-.spesa-no-prezzo-row {
-    display: flex;
-    align-items: center;
-    gap: .4rem;
-    flex-wrap: wrap;
-}
-
 .spesa-btn-controlla {
     display: inline-flex;
     align-items: center;
@@ -1711,68 +1390,12 @@ body.login-page {
     color: var(--accent);
 }
 
-.analizza-formato {
-    font-size: .78rem;
-    color: var(--text-2);
-    white-space: nowrap;
-}
-
-/* Titoli sezione analizza (tabella) */
-.box-verde-titolo {
-    background: #f0f7ee;
-    color: #276228;
-}
-
-.box-giallo-titolo {
-    background: #fffdf0;
-    color: #856404;
-}
-
-.box-rosso-titolo {
-    background: #fef2f2;
-    color: #9b1c1c;
-}
-
-.box-grigio-titolo {
-    background: var(--surface-2);
-    color: var(--text-2);
-}
-
-.spesa-negozio-riga-ext {
-    flex-direction: column;
-    align-items: stretch;
-    padding: .5rem 1rem;
-}
-
-.spesa-negozio-riga-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: .5rem;
-    flex-wrap: wrap;
-}
-
 /* Scarto % rispetto al minimo */
 .controlla-scarto {
     font-size: .72rem;
     color: #9b1c1c;
     font-weight: 600;
     margin-top: .1rem;
-}
-
-/* Prezzo/kg + formato in colonna nella vista negozio spesa */
-.spesa-prezzo-stack {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: .1rem;
-}
-
-/* Suggerimenti centrati nella vista prodotto spesa */
-.spesa-suggerimenti-central {
-    margin-top: .35rem;
-    padding-top: .35rem;
-    border-top: 1px solid var(--border);
 }
 
 /* Nome prodotto/negozio cliccabile — inline, senza aspetto pulsante */
@@ -1793,12 +1416,6 @@ body.login-page {
 
 .btn-nome:hover {
     color: var(--accent);
-}
-
-/* Dentro la card spesa il nome occupa tutta la larghezza disponibile */
-.spesa-card-sinistra .btn-nome {
-    display: block;
-    width: 100%;
 }
 
 /* Prima colonna analizza — nome + badge sulla stessa riga */
@@ -1832,37 +1449,15 @@ body.login-page {
         width: 100%;
     }
 
-    /* Spesa: layout automatico, niente larghezze fisse */
-    .spesa-table {
-        table-layout: auto !important;
-    }
-
-    .spesa-table th,
-    .spesa-table td {
-        width: auto !important;
-    }
-
     /* Colonne analizza/controlla: Prodotto 38% | Prezzo 28% | Formato nascosto | Azioni 34% */
-    .controlla-table:not(.spesa-table) th:nth-child(1),
-    .controlla-table:not(.spesa-table) td:nth-child(1) {
-        width: 38%;
-    }
 
-    .controlla-table:not(.spesa-table) th:nth-child(2),
-    .controlla-table:not(.spesa-table) td:nth-child(2) {
-        width: 28%;
-    }
+
+
 
     /* Formato nascosto su mobile per analizza/controlla */
-    .controlla-table:not(.spesa-table) th:nth-child(3),
-    .controlla-table:not(.spesa-table) td:nth-child(3) {
-        display: none;
-    }
 
-    .controlla-table:not(.spesa-table) th:nth-child(4),
-    .controlla-table:not(.spesa-table) td:nth-child(4) {
-        width: 34%;
-    }
+
+
 
     /* Celle: padding ridotto, testo va a capo per parola intera */
     .controlla-table th,
@@ -1962,56 +1557,6 @@ body.login-page {
     gap: .05rem;
 }
 
-/* Negozio migliore sotto il prezzo nella vista per prodotto */
-.spesa-negozio-sotto {
-    margin-top: .2rem;
-    font-size: .82rem;
-}
-
-/* Card riga spesa (sostituisce tabella) */
-.spesa-card-riga {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: .75rem;
-    padding: .6rem 1rem;
-    border-bottom: 1px solid var(--border);
-}
-
-.spesa-card-riga:last-child {
-    border-bottom: none;
-}
-
-.spesa-card-sinistra {
-    flex: 1 1 auto;
-    min-width: 100px;
-    word-break: normal;
-    overflow-wrap: break-word;
-    hyphens: none;
-}
-
-.spesa-card-destra {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: .2rem;
-    flex: 0 0 auto;
-    max-width: 55%;
-}
-
-.spesa-card-prezzo {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: .05rem;
-    white-space: nowrap;
-}
-
-.spesa-card-negozio {
-    font-size: .82rem;
-    text-align: right;
-}
-
 /* ============================================================
    SPESA — layout mobile specifico
    Su mobile la tabella spesa diventa a 2 colonne:
@@ -2020,170 +1565,29 @@ body.login-page {
 @media (max-width: 600px) {
 
     /* Vista per negozio: nasconde colonna formato, tiene prodotto+prezzo+azioni */
-    .spesa-negozio-box .controlla-table th:nth-child(3),
-    .spesa-negozio-box .controlla-table td:nth-child(3) {
-        display: none;
+
+
+
+
+
+
+
+
+
+
+
+
+    /* Ma mantieni nowrap sui contenuti interni piccoli (pulsanti, badge) */
+    /* Prima colonna tabella spesa: usa tutto lo spazio disponibile */
+    .controlla-table td:first-child .btn-nome {
+        white-space: normal;
+        word-break: normal;
+        overflow-wrap: anywhere;
+        hyphens: none;
+        display: block;
     }
 
-    .spesa-negozio-box .controlla-table {
+    /* Impedisci alle colonne nowrap di schiacciare la prima */
+    .controlla-table {
         table-layout: auto;
     }
-
-    .spesa-negozio-box .controlla-table td:first-child {
-        width: auto;
-        word-break: normal;
-        overflow-wrap: break-word;
-        hyphens: none;
-    }
-
-    /* Vista per prodotto: su mobile mostra tutto su una riga per prodotto
-       invece delle 4 colonne, usa display block su ogni td */
-    .spesa-prodotto-table {
-        display: block;
-    }
-
-    .spesa-prodotto-table thead {
-        display: none;
-    }
-
-    .spesa-prodotto-table tbody {
-        display: block;
-    }
-
-    .spesa-prodotto-table tr {
-        display: flex;
-        flex-wrap: wrap;
-        padding: .6rem .75rem;
-        border-bottom: 1px solid var(--border);
-        gap: .3rem;
-    }
-
-    .spesa-prodotto-table tr.controlla-edit-row {
-        display: none;
-        padding: 0;
-    }
-
-    .spesa-prodotto-table tr.controlla-edit-row[style*="table-row"] {
-        display: block !important;
-    }
-
-    .spesa-prodotto-table tr.controlla-edit-row td {
-        display: block;
-        padding: 0;
-    }
-
-    /* Prima cella: nome prodotto, larghezza piena */
-    .spesa-prodotto-table td:nth-child(1) {
-        width: 100%;
-        font-weight: 500;
-    }
-
-    /* Seconda e terza cella: negozi, side by side */
-    .spesa-prodotto-table td:nth-child(2),
-    .spesa-prodotto-table td:nth-child(3) {
-        flex: 1;
-        min-width: 120px;
-        font-size: .85rem;
-    }
-
-    /* Quarta cella: azioni, allineata a destra */
-    .spesa-prodotto-table td:nth-child(4) {
-        margin-left: auto;
-    }
-}
-
-/* Spesa-table su mobile: layout flex, nome su riga intera, negozi affiancati */
-@media (max-width: 600px) {
-    .spesa-table {
-        table-layout: fixed !important;
-        /* Forza il rispetto delle larghezze */
-        width: 100% !important;
-        display: table !important;
-        /* Assicuriamoci che resti una tabella */
-    }
-
-    .spesa-table tr {
-        display: table-row !important;
-        /* Ripristina la riga classica */
-    }
-
-    .spesa-table td,
-    .spesa-table th {
-        display: table-cell !important;
-        /* Ripristina la cella classica */
-        vertical-align: middle;
-        padding: 8px 4px !important;
-        /* Riduciamo il padding per guadagnare spazio */
-    }
-
-    /* COLONNA 1: Nome Prodotto - Deve espandersi */
-    .spesa-table td:nth-child(1) {
-        width: auto !important;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: normal;
-        /* Permette il ritorno a capo solo se necessario */
-        word-break: break-word;
-    }
-
-    /* COLONNA 2: Prezzo/Suggerimento - Larghezza fissa per non schiacciare il nome */
-    .spesa-table td:nth-child(2) {
-        width: 100px !important;
-        /* Spazio sufficiente per "€ 0.00" o "Negozio" */
-        text-align: right;
-        font-size: 0.85rem;
-    }
-
-    /* COLONNA 3: Azioni (Pulsanti) - Larghezza minima */
-    .spesa-table td:nth-child(3) {
-        width: 45px !important;
-        text-align: right;
-    }
-
-    /* Reset dei font per mobile per guadagnare spazio */
-    .spesa-nome-principale {
-        font-size: 0.95rem !important;
-        line-height: 1.2;
-    }
-
-}
-
-/* spesa-table: nessun nowrap sulle celle — lascia che il browser distribuisca lo spazio */
-.spesa-table td,
-.spesa-table th {
-    white-space: normal !important;
-}
-
-/* Ma mantieni nowrap sui contenuti interni piccoli (pulsanti, badge) */
-.spesa-table .controlla-badges-row,
-.spesa-table .btn-azione {
-    white-space: nowrap;
-}
-
-/* Titolo sezione spesa — come controlla-variante-titolo ma senza maiuscolo */
-.spesa-sezione-titolo {
-    padding: .6rem 1.25rem;
-    font-size: .82rem;
-    font-weight: 700;
-    color: var(--text);
-    background: var(--surface-2);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: .4rem;
-    flex-wrap: wrap;
-}
-
-/* Prima colonna tabella spesa: usa tutto lo spazio disponibile */
-.controlla-table td:first-child .btn-nome {
-    white-space: normal;
-    word-break: normal;
-    overflow-wrap: anywhere;
-    hyphens: none;
-    display: block;
-}
-
-/* Impedisci alle colonne nowrap di schiacciare la prima */
-.controlla-table {
-    table-layout: auto;
-}
