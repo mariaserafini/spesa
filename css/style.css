@@ -1826,31 +1826,41 @@ body.login-page {
    ============================================================ */
 @media (max-width: 600px) {
 
-    /* Layout fisso: le larghezze sono controllate da noi, non dal contenuto */
+    /* Layout fisso per analizza/controlla (4 colonne note) */
     .controlla-table {
         table-layout: fixed;
         width: 100%;
     }
 
-    /* Colonne: Prodotto 38% | Prezzo 28% | Formato 0 (nascosto) | Azioni 34% */
-    .controlla-table th:nth-child(1),
-    .controlla-table td:nth-child(1) {
+    /* Spesa: layout automatico, niente larghezze fisse */
+    .spesa-table {
+        table-layout: auto !important;
+    }
+
+    .spesa-table th,
+    .spesa-table td {
+        width: auto !important;
+    }
+
+    /* Colonne analizza/controlla: Prodotto 38% | Prezzo 28% | Formato nascosto | Azioni 34% */
+    .controlla-table:not(.spesa-table) th:nth-child(1),
+    .controlla-table:not(.spesa-table) td:nth-child(1) {
         width: 38%;
     }
 
-    .controlla-table th:nth-child(2),
-    .controlla-table td:nth-child(2) {
+    .controlla-table:not(.spesa-table) th:nth-child(2),
+    .controlla-table:not(.spesa-table) td:nth-child(2) {
         width: 28%;
     }
 
-    /* Formato nascosto su mobile — il peso appare sotto il prezzo (vedi .controlla-prezzo-mobile) */
-    .controlla-table th:nth-child(3),
-    .controlla-table td:nth-child(3) {
+    /* Formato nascosto su mobile per analizza/controlla */
+    .controlla-table:not(.spesa-table) th:nth-child(3),
+    .controlla-table:not(.spesa-table) td:nth-child(3) {
         display: none;
     }
 
-    .controlla-table th:nth-child(4),
-    .controlla-table td:nth-child(4) {
+    .controlla-table:not(.spesa-table) th:nth-child(4),
+    .controlla-table:not(.spesa-table) td:nth-child(4) {
         width: 34%;
     }
 
@@ -2000,4 +2010,148 @@ body.login-page {
 .spesa-card-negozio {
     font-size: .82rem;
     text-align: right;
+}
+
+/* ============================================================
+   SPESA — layout mobile specifico
+   Su mobile la tabella spesa diventa a 2 colonne:
+   nome prodotto | prezzo+negozio+azioni (tutto in una cella)
+   ============================================================ */
+@media (max-width: 600px) {
+
+    /* Vista per negozio: nasconde colonna formato, tiene prodotto+prezzo+azioni */
+    .spesa-negozio-box .controlla-table th:nth-child(3),
+    .spesa-negozio-box .controlla-table td:nth-child(3) {
+        display: none;
+    }
+
+    .spesa-negozio-box .controlla-table {
+        table-layout: auto;
+    }
+
+    .spesa-negozio-box .controlla-table td:first-child {
+        width: auto;
+        word-break: normal;
+        overflow-wrap: break-word;
+        hyphens: none;
+    }
+
+    /* Vista per prodotto: su mobile mostra tutto su una riga per prodotto
+       invece delle 4 colonne, usa display block su ogni td */
+    .spesa-prodotto-table {
+        display: block;
+    }
+
+    .spesa-prodotto-table thead {
+        display: none;
+    }
+
+    .spesa-prodotto-table tbody {
+        display: block;
+    }
+
+    .spesa-prodotto-table tr {
+        display: flex;
+        flex-wrap: wrap;
+        padding: .6rem .75rem;
+        border-bottom: 1px solid var(--border);
+        gap: .3rem;
+    }
+
+    .spesa-prodotto-table tr.controlla-edit-row {
+        display: none;
+        padding: 0;
+    }
+
+    .spesa-prodotto-table tr.controlla-edit-row[style*="table-row"] {
+        display: block !important;
+    }
+
+    .spesa-prodotto-table tr.controlla-edit-row td {
+        display: block;
+        padding: 0;
+    }
+
+    /* Prima cella: nome prodotto, larghezza piena */
+    .spesa-prodotto-table td:nth-child(1) {
+        width: 100%;
+        font-weight: 500;
+    }
+
+    /* Seconda e terza cella: negozi, side by side */
+    .spesa-prodotto-table td:nth-child(2),
+    .spesa-prodotto-table td:nth-child(3) {
+        flex: 1;
+        min-width: 120px;
+        font-size: .85rem;
+    }
+
+    /* Quarta cella: azioni, allineata a destra */
+    .spesa-prodotto-table td:nth-child(4) {
+        margin-left: auto;
+    }
+}
+
+/* Spesa-table su mobile: layout flex, nome su riga intera, negozi affiancati */
+@media (max-width: 600px) {
+    .spesa-table {
+        table-layout: auto !important;
+    }
+
+    /* Righe dati diventano flex */
+    .spesa-table tr:not(.controlla-edit-row) {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        padding: .5rem .75rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .spesa-table td,
+    .spesa-table th {
+        display: block;
+        border: none;
+        padding: .1rem 0;
+    }
+
+    /* Riga edit: rimane table-row */
+    .spesa-table tr.controlla-edit-row {
+        display: none;
+    }
+
+    .spesa-table tr.controlla-edit-row[style*="table-row"] {
+        display: table-row !important;
+    }
+
+    .spesa-table tr.controlla-edit-row td {
+        display: table-cell;
+        padding: .5rem;
+    }
+
+    /* Col 1: nome, larghezza piena */
+    .spesa-table td:nth-child(1),
+    .spesa-table th:nth-child(1) {
+        width: 100%;
+        font-weight: 500;
+        word-break: normal;
+        hyphens: none;
+        overflow-wrap: break-word;
+    }
+
+    /* Col 2 e 3: negozi affiancati */
+    .spesa-table td:nth-child(2),
+    .spesa-table th:nth-child(2),
+    .spesa-table td:nth-child(3),
+    .spesa-table th:nth-child(3) {
+        flex: 1;
+        min-width: 120px;
+        font-size: .83rem;
+    }
+
+    /* Col 4: azioni */
+    .spesa-table td:nth-child(4),
+    .spesa-table th:nth-child(4) {
+        width: auto;
+        margin-left: auto;
+    }
 }

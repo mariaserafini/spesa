@@ -217,7 +217,7 @@ async function initSpesa() {
         contenuto.innerHTML = `
             <div class="card" style="padding:0;overflow:hidden;margin-top:1rem">
                 <div class="table-responsive">
-                    <table class="results-table controlla-table">
+                    <table class="results-table controlla-table spesa-table">
                         <thead><tr><th>Prodotto</th><th>1° negozio</th><th>2° negozio</th><th></th></tr></thead>
                         <tbody>${righeHtml}</tbody>
                     </table>
@@ -277,7 +277,7 @@ async function initSpesa() {
                         <span class="analizza-box-count">${items.length}</span>
                     </div>
                     <div class="table-responsive">
-                        <table class="results-table controlla-table">
+                        <table class="results-table controlla-table spesa-table">
                             <thead><tr><th>Prodotto</th><th>€/unità</th><th>Formato</th><th></th></tr></thead>
                             <tbody>${righe}</tbody>
                         </table>
