@@ -1787,10 +1787,18 @@ body.login-page {
     text-align: left;
     display: inline;
     text-decoration: none;
+    word-break: normal;
+    hyphens: none;
 }
 
 .btn-nome:hover {
     color: var(--accent);
+}
+
+/* Dentro la card spesa il nome occupa tutta la larghezza disponibile */
+.spesa-card-sinistra .btn-nome {
+    display: block;
+    width: 100%;
 }
 
 /* Prima colonna analizza — nome + badge sulla stessa riga */
@@ -1948,4 +1956,48 @@ body.login-page {
 .spesa-negozio-sotto {
     margin-top: .2rem;
     font-size: .82rem;
+}
+
+/* Card riga spesa (sostituisce tabella) */
+.spesa-card-riga {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .75rem;
+    padding: .6rem 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.spesa-card-riga:last-child {
+    border-bottom: none;
+}
+
+.spesa-card-sinistra {
+    flex: 1 1 auto;
+    min-width: 100px;
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: none;
+}
+
+.spesa-card-destra {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: .2rem;
+    flex: 0 0 auto;
+    max-width: 55%;
+}
+
+.spesa-card-prezzo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: .05rem;
+    white-space: nowrap;
+}
+
+.spesa-card-negozio {
+    font-size: .82rem;
+    text-align: right;
 }
