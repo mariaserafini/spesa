@@ -1,28 +1,26 @@
 // ============================================================
-// SPESA.JS — lista della spesa con suggerimenti negozio
+// SPESA.JS — lista della spesa
+// Vista negozio: struttura identica ad analizza.js "Da comprare"
+// Vista prodotto: struttura identica a controlla.js (max 2 negozi)
 // ============================================================
 
 async function renderSpesa() {
     document.getElementById('app').innerHTML = `
-        <div class="page-header">
-            <h1>Lista della spesa</h1>
-        </div>
+        <div class="page-header"><h1>Lista della spesa</h1></div>
         <div class="card">
             <div class="field" style="margin:0">
                 <label for="inputSpesaProdotto">Aggiungi prodotto</label>
                 <div class="spesa-input-row">
                     <div class="ac-wrapper" style="flex:1">
                         <input type="text" id="inputSpesaProdotto"
-                               placeholder="es. noci, ceci, tahina…"
-                               autocomplete="off" />
+                               placeholder="es. noci, ceci, tahina…" autocomplete="off" />
                         <div class="ac-dropdown" id="dropdownSpesa"></div>
                     </div>
                     <button class="btn btn-primary" id="btnAggiungiSpesa">Aggiungi</button>
                 </div>
             </div>
         </div>
-        <div id="spesaWrap"></div>
-    `;
+        <div id="spesaWrap"></div>`;
     await initSpesa();
 }
 
@@ -39,10 +37,34 @@ async function initSpesa() {
         .select('id, fkprodotto, variante, prodotti(id, nome, unita)')
         .order('datacreazione');
 
-    const { data: prezziRecenti } = await supabaseClient
+    const { data: prezziDB } = await supabaseClient
         .from('prezzi')
-        .select('id, fkprodotto, variante, prezzo, quantita, unita, prezzounita, negozi(id, nome, filiale)')
+        .select('id, fkprodotto, variante, prezzo, quantita, unita, prezzounita, promozione, note, datarilevazione, negozi(id, nome, filiale)')
         .gte('datarilevazione', soglia);
+
+    // Mappa prezziPerProdotto[fkprodotto] → array ordinato per prezzounita
+    const prezziPerProdotto = {};
+    for (const r of (prezziDB || [])) {
+        if (!prezziPerProdotto[r.fkprodotto]) prezziPerProdotto[r.fkprodotto] = [];
+        prezziPerProdotto[r.fkprodotto].push({
+            prezzoId: r.id,
+            variante: r.variante,
+            prezzo: r.prezzo,
+            quantita: r.quantita,
+            unita: r.unita,
+            prezzounita: r.prezzounita,
+            promozione: r.promozione,
+            note: r.note,
+            data: r.datarilevazione,
+            negozioId: r.negozi.id,
+            negozioNome: r.negozi.filiale
+                ? `${r.negozi.nome} (${r.negozi.filiale})`
+                : r.negozi.nome,
+            negozioNomeBase: r.negozi.nome,
+        });
+    }
+    for (const id in prezziPerProdotto)
+        prezziPerProdotto[id].sort((a, b) => a.prezzounita - b.prezzounita);
 
     let lista = (listaDB || []).map(r => ({
         listaId: r.id,
@@ -52,31 +74,25 @@ async function initSpesa() {
         unita: r.prodotti.unita,
     }));
 
-    const prezziPerProdotto = {};
-    for (const r of (prezziRecenti || [])) {
-        if (!prezziPerProdotto[r.fkprodotto]) prezziPerProdotto[r.fkprodotto] = [];
-        prezziPerProdotto[r.fkprodotto].push({
-            prezzoId: r.id,
-            variante: r.variante,
-            prezzo: r.prezzo,
-            quantita: r.quantita,
-            unita: r.unita,
-            prezzounita: r.prezzounita,
-            negozioId: r.negozi.id,
-            negozioNome: r.negozi.filiale ? `${r.negozi.nome} (${r.negozi.filiale})` : r.negozi.nome,
-        });
+    // Restituisce i prezzi recenti per un item (filtra per variante esatta)
+    function prezziItem(item) {
+        const tutti = prezziPerProdotto[item.prodottoId] || [];
+        if (item.variante !== null && item.variante !== undefined) {
+            const filtrati = tutti.filter(p => p.variante === item.variante);
+            return filtrati.length > 0 ? filtrati : [];
+        }
+        const senzaVar = tutti.filter(p => !p.variante);
+        return senzaVar.length > 0 ? senzaVar : tutti;
     }
-    for (const id in prezziPerProdotto)
-        prezziPerProdotto[id].sort((a, b) => a.prezzounita - b.prezzounita);
 
     let prodottoScelto = null;
     let vistaCorrente = 'negozio';
 
+    // ---- Autocomplete ----
     creaAutocomplete({
         input: document.getElementById('inputSpesaProdotto'),
         dropdown: document.getElementById('dropdownSpesa'),
-        lista: prodotti,
-        mostraNuovo: true,
+        lista: prodotti, mostraNuovo: true,
         onSelect: (p) => { prodottoScelto = p; },
         onNuovo: async (testo) => {
             const nome = normalizzaProdotto(testo);
@@ -109,17 +125,15 @@ async function initSpesa() {
     document.getElementById('btnAggiungiSpesa').addEventListener('click', async () => {
         if (!prodottoScelto) return;
         const variantiEsistenti = (prezziPerProdotto[prodottoScelto.id] || [])
-            .map(p => p.variante).filter((v, i, arr) => arr.indexOf(v) === i);
+            .map(p => p.variante).filter((v, i, a) => a.indexOf(v) === i);
         const righeNuove = variantiEsistenti.length > 0 ? variantiEsistenti : [null];
         const righeFiltered = righeNuove.filter(v =>
             !lista.find(i => i.prodottoId === prodottoScelto.id && i.variante === v));
         if (righeFiltered.length === 0) {
             document.getElementById('inputSpesaProdotto').value = '';
-            prodottoScelto = null;
-            return;
+            prodottoScelto = null; return;
         }
-        const { data, error } = await supabaseClient
-            .from('lista_spesa')
+        const { data, error } = await supabaseClient.from('lista_spesa')
             .insert(righeFiltered.map(v => ({ fkprodotto: prodottoScelto.id, variante: v })))
             .select('id, fkprodotto, variante, prodotti(id, nome, unita)');
         if (!error && data) {
@@ -135,7 +149,9 @@ async function initSpesa() {
         renderLista();
     });
 
-    // ---- renderLista ----
+    // ================================================================
+    // renderLista — toolbar + vista corrente
+    // ================================================================
     function renderLista() {
         const wrap = document.getElementById('spesaWrap');
         if (lista.length === 0) {
@@ -152,182 +168,267 @@ async function initSpesa() {
                 <button class="btn btn-ghost btn-sm" id="btnSvuotaSpesa">Svuota lista</button>
             </div>
             <div id="spesaContenuto"></div>`;
+
         wrap.querySelector('.spesa-vista-toggle').addEventListener('click', e => {
-            const btn = e.target.closest('.btn-vista');
-            if (!btn) return;
-            vistaCorrente = btn.dataset.vista;
-            renderLista();
+            const btn = e.target.closest('.btn-vista'); if (!btn) return;
+            vistaCorrente = btn.dataset.vista; renderLista();
         });
         wrap.querySelector('#btnSvuotaSpesa').addEventListener('click', async () => {
             if (!confirm('Svuotare tutta la lista?')) return;
             await supabaseClient.from('lista_spesa').delete().neq('id', 0);
-            lista = [];
-            renderLista();
+            lista = []; renderLista();
         });
+
         const contenuto = document.getElementById('spesaContenuto');
         if (vistaCorrente === 'prodotto') renderVistaProdotto(contenuto);
         else renderVistaNegozio(contenuto);
     }
 
     // ================================================================
-    // VISTA PER PRODOTTO — lista alfabetica, 2 negozi migliori
-    // ================================================================
-    function renderVistaProdotto(contenuto) {
-        const righeHtml = [...lista]
-            .sort((a, b) => a.nome.localeCompare(b.nome) || (a.variante || '').localeCompare(b.variante || ''))
-            .map(item => {
-                const tuttiPrezzi = (prezziPerProdotto[item.prodottoId] || [])
-                    .filter(p => item.variante ? p.variante === item.variante : true);
-                const n1 = tuttiPrezzi[0] || null;
-                const n2 = tuttiPrezzi[1] || null;
-                const prezzoId = n1?.prezzoId || null;
-                const varHtml = item.variante ? `<div class="controlla-note">${item.variante}</div>` : '';
-
-                const neg1Html = n1
-                    ? `<div><button class="btn-nome spesa-btn-analizza" data-negozio-id="${n1.negozioId}" data-negozio-nome="${n1.negozioNome}" style="color:var(--accent);font-weight:600" >${n1.negozioNome}</button>
-                       € ${parseFloat(n1.prezzounita).toFixed(2)}</div>
-                       <div class="controlla-prezzo-formato">${n1.quantita}${n1.unita} (€ ${parseFloat(n1.prezzo).toFixed(2)})</div>`
-                    : `<span class="text-muted">Nessun prezzo recente</span>`;
-
-                const pct2 = n2 && n1 ? Math.round((n2.prezzounita - n1.prezzounita) / n1.prezzounita * 100) : 0;
-                const neg2Html = n2
-                    ? `<div><button class="btn-nome spesa-btn-analizza" data-negozio-id="${n2.negozioId}" data-negozio-nome="${n2.negozioNome}">${n2.negozioNome}</button>  € ${parseFloat(n2.prezzounita).toFixed(2)} <span class="controlla-scarto">+${pct2}%</span></div>
-                       <div class="controlla-prezzo-formato">${n2.quantita}${n2.unita} (€ ${parseFloat(n2.prezzo).toFixed(2)})</div>`
-                    : '';
-
-                const azioniHtml = `<div class="controlla-badges-row">
-                    ${prezzoId ? `<button class="btn-azione btn-conferma spesa-btn-conferma" data-id="${prezzoId}" title="Conferma">✓</button>` : ''}
-                    <button class="btn-azione btn-aggiorna spesa-btn-aggiorna" data-id="${prezzoId || ''}" data-lista-id="${item.listaId}" title="Modifica">✎</button>
-                    <button class="btn-rimuovi-spesa" data-id="${item.listaId}" title="Rimuovi">✕</button>
-                </div>`;
-
-                const editId = `spesa-edit-${item.listaId}`;
-                return `
-                    <tr>
-                        <td><button class="btn-nome spesa-btn-controlla" data-prodotto-nome="${item.nome}">${item.nome}</button>${varHtml}</td>
-                        <td>${neg1Html}</td>
-                        <td>${neg2Html}</td>
-                        <td class="controlla-col-azioni">${azioniHtml}</td>
-                    </tr>
-                    <tr class="controlla-edit-row" id="${editId}" style="display:none">
-                        <td colspan="4"><div class="controlla-edit-box">${buildEditForm(editId, item, n1, prezzoId)}</div></td>
-                    </tr>`;
-            }).join('');
-
-        contenuto.innerHTML = `
-            <div class="card" style="padding:0;overflow:hidden;margin-top:1rem">
-                <div class="table-responsive">
-                    <table class="results-table controlla-table spesa-table">
-                        <thead><tr><th>Prodotto</th><th>1° negozio</th><th>2° negozio</th><th></th></tr></thead>
-                        <tbody>${righeHtml}</tbody>
-                    </table>
-                </div>
-            </div>`;
-        aggiungiListener(contenuto);
-    }
-
-    // ================================================================
-    // VISTA PER NEGOZIO — tabella per negozio migliore
+    // VISTA PER NEGOZIO
+    // Identica ad analizza "Da comprare": sezioni card per negozio.
+    // Colonne: Prodotto | €/unità | Formato | Rilevazione+azioni
     // ================================================================
     function renderVistaNegozio(contenuto) {
+        // Raggruppa per negozio migliore
         const perNegozio = {};
         for (const item of lista) {
-            const tuttiPrezzi = (prezziPerProdotto[item.prodottoId] || [])
-                .filter(p => item.variante ? p.variante === item.variante : true);
-            const migliore = tuttiPrezzi[0] || null;
-            const key = migliore ? migliore.negozioNome : '__nessuno__';
-            if (!perNegozio[key]) perNegozio[key] = { negozioId: migliore?.negozioId, items: [] };
-            perNegozio[key].items.push({ item, prezzoRec: migliore });
+            const prezzi = prezziItem(item);
+            const n = prezzi[0] || null;
+            const key = n ? `${n.negozioId}` : '__nessuno__';
+            if (!perNegozio[key]) perNegozio[key] = {
+                negozioId: n?.negozioId,
+                negozioNome: n?.negozioNome,
+                negozioNomeBase: n?.negozioNomeBase,
+                items: []
+            };
+            perNegozio[key].items.push({ item, n });
         }
-        const negoziOrdinati = Object.keys(perNegozio).filter(k => k !== '__nessuno__').sort();
-        if (perNegozio['__nessuno__']) negoziOrdinati.push('__nessuno__');
 
-        const html = negoziOrdinati.map(negNome => {
-            const { negozioId, items } = perNegozio[negNome];
-            const titolo = negNome === '__nessuno__'
-                ? '⚠️ Senza prezzo recente'
-                : `🏪 <button class="btn-nome spesa-btn-analizza" data-negozio-id="${negozioId}" data-negozio-nome="${negNome}" style="font-weight:700;font-size:inherit;color:var(--accent)">${negNome}</button>`;
+        const keys = Object.keys(perNegozio).filter(k => k !== '__nessuno__')
+            .sort((a, b) => perNegozio[b].items.length - perNegozio[a].items.length || perNegozio[a].negozioNome.localeCompare(perNegozio[b].negozioNome));
+        if (perNegozio['__nessuno__']) keys.push('__nessuno__');
 
-            const righe = [...items].sort((a, b) => a.item.nome.localeCompare(b.item.nome)).map(({ item, prezzoRec }) => {
-                const prezzoId = prezzoRec?.prezzoId || null;
+        const wrap = document.createElement('div');
+
+        keys.forEach(key => {
+            const { negozioId, negozioNome, negozioNomeBase, items } = perNegozio[key];
+            const nessuno = key === '__nessuno__';
+
+            // Ordine alfabetico prodotti
+            const itemsOrdinati = [...items].sort((a, b) => a.item.nome.localeCompare(b.item.nome));
+            const unitaBase = itemsOrdinati[0]?.item.unita || 'kg';
+
+            const righeHtml = itemsOrdinati.map(({ item, n }) => {
                 const varHtml = item.variante ? `<div class="controlla-note">${item.variante}</div>` : '';
-                const puHtml = prezzoRec ? `€ ${parseFloat(prezzoRec.prezzounita).toFixed(2)}` : '—';
-                const fmtHtml = prezzoRec ? `${prezzoRec.quantita}${prezzoRec.unita}<br>(€ ${parseFloat(prezzoRec.prezzo).toFixed(2)})` : '';
-                const azioniHtml = `<div class="controlla-badges-row">
-                    ${prezzoId ? `<button class="btn-azione btn-conferma spesa-btn-conferma" data-id="${prezzoId}" title="Conferma">✓</button>` : ''}
-                    <button class="btn-azione btn-aggiorna spesa-btn-aggiorna" data-id="${prezzoId || ''}" data-lista-id="${item.listaId}" title="Modifica">✎</button>
-                    <button class="btn-rimuovi-spesa" data-id="${item.listaId}" title="Rimuovi">✕</button>
-                </div>`;
-                const editId = `spesa-edit-neg-${item.listaId}`;
+                const noteHtml = n?.note ? `<div class="controlla-note">${n.note}</div>` : '';
+                const { testo: tempoTesto, badge: tempoBadge } = n ? calcolaEtaTesto(n.data) : { testo: '—', badge: '' };
+                const promoHtml = '';
+                const formatoMobile = n?.quantita ? `<span class="controlla-formato-mobile">${n.quantita}${n.unita}</span>` : '';
+                const prezzoHtml = n ? `€ ${parseFloat(n.prezzounita).toFixed(2)}` : '—';
+                const fmtHtml = n ? `${n.quantita}${n.unita}<br>(€ ${parseFloat(n.prezzo).toFixed(2)})` : '';
+
                 return `
-                    <tr>
-                        <td> <div style="display:flex; align-items:center; gap: 0.5rem; width: 100%;"><span class="spesa-nome-principale" style="flex: 1; min-width: 0;"><button class="btn-nome spesa-btn-controlla" data-prodotto-nome="${item.nome}">${item.nome}</button>${varHtml}</span></div></td>
-                        <td class="controlla-prezzo-unita">${puHtml}</td>
+                    <tr data-prezzo-id="${n?.prezzoId || ''}" data-lista-id="${item.listaId}">
+                        <td>
+                            <div class="controlla-negozio analizza-nome-row">
+                                <button class="btn-nome spesa-btn-controlla" data-prodotto-nome="${item.nome}">${item.nome}</button>
+                            </div>
+                            ${varHtml}${noteHtml}
+                        </td>
+                        <td class="controlla-prezzo-unita">
+                            <div class="prezzo-col">${prezzoHtml}${formatoMobile}</div>
+                        </td>
                         <td class="controlla-prezzo-formato">${fmtHtml}</td>
-                        <td class="controlla-col-azioni">${azioniHtml}</td>
+                        <td class="controlla-col-azioni">
+                            <div class="controlla-tempo">${tempoTesto} ${tempoBadge}</div>
+                            <div class="controlla-badges-row">
+                                ${promoHtml}
+                                ${n ? `<button class="btn-azione btn-conferma spesa-btn-conferma" data-id="${n.prezzoId}" title="Prezzo ancora valido">✓</button>` : ''}
+                                <button class="btn-azione btn-aggiorna spesa-btn-aggiorna" data-id="${n?.prezzoId || ''}" data-lista-id="${item.listaId}" title="${n ? 'Modifica' : 'Aggiungi rilevazione'}">✎</button>
+                                <button class="btn-azione spesa-btn-rimuovi" data-lista-id="${item.listaId}" title="Rimuovi dalla lista" style="background:#fee2e2;color:#9b1c1c;border-color:#f5c0c0">✕</button>
+                            </div>
+                        </td>
                     </tr>
-                    <tr class="controlla-edit-row" id="${editId}" style="display:none">
-                        <td colspan="4"><div class="controlla-edit-box">${buildEditForm(editId, item, prezzoRec, prezzoId)}</div></td>
+                    <tr class="controlla-edit-row" id="spesa-edit-${item.listaId}" style="display:none">
+                        <td colspan="4">${buildEditForm(n, item)}</td>
                     </tr>`;
             }).join('');
 
-            return `
-                <div class="card spesa-negozio-box" style="padding:0;overflow:hidden;margin-top:1rem">
-                    <div class="spesa-negozio-titolo">${titolo}
-                        <span class="analizza-box-count">${items.length}</span>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="results-table controlla-table spesa-table">
-                            <thead><tr><th>Prodotto</th><th>€/unità</th><th>Formato</th><th></th></tr></thead>
-                            <tbody>${righe}</tbody>
-                        </table>
-                    </div>
-                </div>`;
-        }).join('');
+            const titoloHtml = nessuno
+                ? `<div class="controlla-variante-titolo">⚠️ Senza prezzo recente <span class="analizza-box-count">${items.length}</span></div>`
+                : `<div class="controlla-variante-titolo" style="display:flex;align-items:center;gap:.5rem">
+                       🏪 <button class="btn-link spesa-btn-analizza" data-negozio-id="${negozioId}" data-negozio-nome="${negozioNomeBase}">${negozioNome}</button>
+                       <span class="analizza-box-count">${items.length}</span>
+                   </div>`;
 
-        contenuto.innerHTML = html;
+            const sezione = document.createElement('div');
+            sezione.className = 'controlla-sezione card';
+            sezione.innerHTML = `
+                ${titoloHtml}
+                <div class="table-responsive">
+                    <table class="results-table controlla-table">
+                        <thead><tr>
+                            <th>Prodotto</th>
+                            <th>€ / ${unitaBase}</th>
+                            <th>Formato</th>
+                            <th>Rilevazione</th>
+                        </tr></thead>
+                        <tbody>${righeHtml}</tbody>
+                    </table>
+                </div>`;
+            wrap.appendChild(sezione);
+        });
+
+        contenuto.innerHTML = '';
+        contenuto.appendChild(wrap);
         aggiungiListener(contenuto);
     }
 
     // ================================================================
-    // FORM MODIFICA
+    // VISTA PER PRODOTTO
+    // Identica a controlla: sezioni card per prodotto (come varianti).
+    // Mostra max 2 negozi. Nessun badge "migliore". X nel titolo.
     // ================================================================
-    function buildEditForm(editId, item, prezzoRec, prezzoId) {
-        const unita = prezzoRec?.unita || item.unita;
+    function renderVistaProdotto(contenuto) {
+        const listaOrdinata = [...lista].sort((a, b) =>
+            a.nome.localeCompare(b.nome) || (a.variante || '').localeCompare(b.variante || ''));
+
+        const wrap = document.createElement('div');
+
+        listaOrdinata.forEach(item => {
+            const prezzi = prezziItem(item);
+            const top2 = prezzi.slice(0, 2);
+            const prezzoMin = top2[0]?.prezzounita || 0;
+            const unitaBase = item.unita;
+
+            const righeHtml = top2.map((n, i) => {
+                const negozioLabel = `<button class="btn-link spesa-btn-analizza" data-negozio-id="${n.negozioId}" data-negozio-nome="${n.negozioNomeBase}">${n.negozioNome}</button>`;
+                const { testo: tempoTesto, badge: tempoBadge } = calcolaEtaTesto(n.data);
+                const promoHtml = '';
+                const scartoPct = i === 0 ? '' : `<div class="controlla-scarto">+${Math.round((n.prezzounita - prezzoMin) / prezzoMin * 100)}%</div>`;
+                const formatoMobile = n.quantita ? `<span class="controlla-formato-mobile">${n.quantita}${n.unita}</span>` : '';
+                const noteHtml = n.note ? `<div class="controlla-note">${n.note}</div>` : '';
+
+                return `
+                    <tr data-prezzo-id="${n.prezzoId}" data-lista-id="${item.listaId}" class="${i === 0 ? 'controlla-best' : ''}">
+                        <td>
+                            <div class="controlla-negozio">${negozioLabel}</div>
+                            ${noteHtml}
+                        </td>
+                        <td class="controlla-prezzo-unita">
+                            <div class="prezzo-col">€ ${parseFloat(n.prezzounita).toFixed(2)}${formatoMobile}${scartoPct}</div>
+                        </td>
+                        <td class="controlla-prezzo-formato">
+                            ${n.quantita}${n.unita}<br>(€ ${parseFloat(n.prezzo).toFixed(2)})
+                        </td>
+                        <td class="controlla-col-azioni">
+                            <div class="controlla-tempo">${tempoTesto} ${tempoBadge}</div>
+                            <div class="controlla-badges-row">
+                                ${promoHtml}
+                                ${i === 0 ? `<button class="btn-azione btn-conferma spesa-btn-conferma" data-id="${n.prezzoId}" title="Prezzo ancora valido">✓</button>` : ''}
+                                ${i === 0 ? `<button class="btn-azione btn-aggiorna spesa-btn-aggiorna" data-id="${n.prezzoId}" data-lista-id="${item.listaId}" title="Modifica">✎</button>` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                    ${i === 0 ? `<tr class="controlla-edit-row" id="spesa-edit-${item.listaId}" style="display:none">
+                        <td colspan="4">${buildEditForm(n, item)}</td>
+                    </tr>` : ''}`;
+            }).join('');
+
+            // Se nessun prezzo disponibile
+            const nessunPrezzoHtml = top2.length === 0 ? `
+                <tr><td colspan="4" style="padding:.75rem 1rem">
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                        <span class="text-muted" style="font-size:.85rem">Nessun prezzo recente</span>
+                        <button class="btn-azione btn-aggiorna spesa-btn-aggiorna" data-id="" data-lista-id="${item.listaId}" title="Aggiungi rilevazione">✎</button>
+                    </div>
+                </td></tr>
+                <tr class="controlla-edit-row" id="spesa-edit-${item.listaId}" style="display:none">
+                    <td colspan="4">${buildEditForm(null, item)}</td>
+                </tr>` : '';
+
+            const titoloVariante = item.variante
+                ? `<div class="controlla-variante-titolo" style="display:flex;align-items:center;justify-content:space-between">
+                       <span>${item.nome} <span style="font-weight:400;text-transform:none">${item.variante}</span></span>
+                       <button class="spesa-btn-rimuovi btn-link" data-lista-id="${item.listaId}" style="color:var(--muted);font-size:.8rem" title="Rimuovi dalla lista">✕</button>
+                   </div>`
+                : `<div class="controlla-variante-titolo" style="display:flex;align-items:center;justify-content:space-between">
+                       <span>${item.nome}</span>
+                       <button class="spesa-btn-rimuovi btn-link" data-lista-id="${item.listaId}" style="color:var(--muted);font-size:.8rem" title="Rimuovi dalla lista">✕</button>
+                   </div>`;
+
+            const sezione = document.createElement('div');
+            sezione.className = 'controlla-sezione card';
+            sezione.innerHTML = `
+                ${titoloVariante}
+                <div class="table-responsive">
+                    <table class="results-table controlla-table">
+                        <thead><tr>
+                            <th>Negozio</th>
+                            <th>€ / ${unitaBase}</th>
+                            <th>Formato</th>
+                            <th>Rilevazione</th>
+                        </tr></thead>
+                        <tbody>${righeHtml}${nessunPrezzoHtml}</tbody>
+                    </table>
+                </div>`;
+            wrap.appendChild(sezione);
+        });
+
+        contenuto.innerHTML = '';
+        contenuto.appendChild(wrap);
+        aggiungiListener(contenuto);
+    }
+
+    // ================================================================
+    // FORM MODIFICA — identico a controlla/analizza
+    // ================================================================
+    function buildEditForm(n, item) {
+        const unita = n?.unita || item.unita || 'kg';
         return `
-            <div class="controlla-edit-fields">
-                <div class="field"><label>Prezzo (€)</label>
-                    <input type="number" class="edit-prezzo" value="${prezzoRec?.prezzo || ''}" min="0" step="0.01" />
-                </div>
-                <div class="field"><label>Quantità</label>
-                    <input type="number" class="edit-quantita" value="${prezzoRec?.quantita || ''}" min="0" step="any" />
-                </div>
-                <div class="field"><label>Unità</label>
-                    <select class="edit-unita">
-                        ${['g', 'kg', 'mg', 'ml', 'cl', 'dl', 'l', 'pz'].map(u =>
+            <div class="controlla-edit-box">
+                <div class="controlla-edit-fields">
+                    <div class="field"><label>Prezzo (€)</label>
+                        <input type="number" class="edit-prezzo" value="${n?.prezzo || ''}" min="0" step="0.01" />
+                    </div>
+                    <div class="field"><label>Quantità</label>
+                        <input type="number" class="edit-quantita" value="${n?.quantita || ''}" min="0" step="any" />
+                    </div>
+                    <div class="field"><label>Unità</label>
+                        <select class="edit-unita">
+                            ${['g', 'kg', 'mg', 'ml', 'cl', 'dl', 'l', 'pz'].map(u =>
             `<option value="${u}" ${u === unita ? 'selected' : ''}>${u}</option>`).join('')}
-                    </select>
-                </div>
-                <div class="field"><label>Negozio</label>
-                    <div class="ac-wrapper">
-                        <input type="text" class="edit-negozio-input" placeholder="es. Lidl" autocomplete="off" value="${prezzoRec?.negozioNome || ''}" />
-                        <div class="ac-dropdown edit-negozio-dropdown"></div>
+                        </select>
+                    </div>
+                    <div class="field"><label>Variante</label>
+                        <input type="text" class="edit-variante" value="${item.variante || ''}" placeholder="nessuna" />
+                    </div>
+                    <div class="field"><label>Negozio</label>
+                        <div class="ac-wrapper">
+                            <input type="text" class="edit-negozio-input" placeholder="es. Lidl"
+                                autocomplete="off" value="${n?.negozioNome || ''}" />
+                            <div class="ac-dropdown edit-negozio-dropdown"></div>
+                        </div>
+                    </div>
+                    <div class="field"><label>Promo</label>
+                        <select class="edit-promo">
+                            <option value="false" ${!n?.promozione ? 'selected' : ''}>No</option>
+                            <option value="true"  ${n?.promozione ? 'selected' : ''}>Sì</option>
+                        </select>
+                    </div>
+                    <div class="field edit-field-note"><label>Note</label>
+                        <input type="text" class="edit-note" value="${n?.note || ''}" placeholder="opzionale" />
                     </div>
                 </div>
-                <div class="field"><label>Promo</label>
-                    <select class="edit-promo">
-                        <option value="false">No</option>
-                        <option value="true">Sì</option>
-                    </select>
+                <div class="controlla-edit-actions">
+                    <button class="btn btn-primary btn-sm spesa-btn-salva"
+                        data-prezzo-id="${n?.prezzoId || ''}"
+                        data-prodotto-id="${item.prodottoId}"
+                        data-lista-id="${item.listaId}">Salva</button>
+                    <button class="btn btn-ghost btn-sm spesa-btn-annulla"
+                        data-lista-id="${item.listaId}">Annulla</button>
                 </div>
-            </div>
-            <div class="controlla-edit-actions">
-                <button class="btn btn-primary btn-sm spesa-btn-salva"
-                    data-prezzo-id="${prezzoId || ''}"
-                    data-prodotto-id="${item.prodottoId}"
-                    data-variante="${item.variante || ''}"
-                    data-lista-id="${item.listaId}">Salva</button>
-                <button class="btn btn-ghost btn-sm spesa-btn-annulla" data-edit-id="${editId}">Annulla</button>
             </div>`;
     }
 
@@ -337,14 +438,15 @@ async function initSpesa() {
     function aggiungiListener(contenuto) {
         contenuto.addEventListener('click', async e => {
 
-            if (e.target.closest('.btn-rimuovi-spesa')) {
-                const id = parseInt(e.target.closest('.btn-rimuovi-spesa').dataset.id);
-                await supabaseClient.from('lista_spesa').delete().eq('id', id);
-                lista = lista.filter(i => i.listaId !== id);
-                renderLista();
-                return;
+            // Rimuovi dalla lista
+            if (e.target.closest('.spesa-btn-rimuovi')) {
+                const listaId = parseInt(e.target.closest('.spesa-btn-rimuovi').dataset.listaId);
+                await supabaseClient.from('lista_spesa').delete().eq('id', listaId);
+                lista = lista.filter(i => i.listaId !== listaId);
+                renderLista(); return;
             }
 
+            // Vai a Controlla
             if (e.target.closest('.spesa-btn-controlla')) {
                 const nome = e.target.closest('.spesa-btn-controlla').dataset.prodottoNome;
                 await navigate('controlla');
@@ -353,12 +455,14 @@ async function initSpesa() {
                 return;
             }
 
+            // Vai ad Analizza negozio
             if (e.target.closest('.spesa-btn-analizza')) {
                 const btn = e.target.closest('.spesa-btn-analizza');
                 navigate('analizza', { negozio: { id: parseInt(btn.dataset.negozioId), nome: btn.dataset.negozioNome, filiale: null } });
                 return;
             }
 
+            // Conferma data
             if (e.target.closest('.spesa-btn-conferma')) {
                 const btn = e.target.closest('.spesa-btn-conferma');
                 btn.disabled = true; btn.textContent = '…';
@@ -366,71 +470,79 @@ async function initSpesa() {
                     .update({ datarilevazione: new Date().toISOString().slice(0, 10) })
                     .eq('id', btn.dataset.id);
                 btn.disabled = false;
-                btn.textContent = error ? '✗' : '✓';
-                if (!error) { btn.style.background = '#e2efda'; btn.style.color = '#276228'; }
+                if (!error) {
+                    btn.textContent = '✓'; btn.style.background = '#e2efda'; btn.style.color = '#276228';
+                    const td = btn.closest('tr')?.querySelector('.controlla-tempo');
+                    if (td) td.innerHTML = 'oggi';
+                } else { btn.textContent = '✗'; }
                 return;
             }
 
+            // Toggle form modifica
             if (e.target.closest('.spesa-btn-aggiorna')) {
                 const btn = e.target.closest('.spesa-btn-aggiorna');
-                const editId = btn.dataset.listaId
-                    ? (btn.closest('tr')?.id?.includes('neg') ? `spesa-edit-neg-${btn.dataset.listaId}` : `spesa-edit-${btn.dataset.listaId}`)
-                    : null;
-                const editRow = btn.closest('tr')?.nextElementSibling;
+                const listaId = btn.dataset.listaId;
+                const editRow = document.getElementById(`spesa-edit-${listaId}`);
                 if (!editRow) return;
                 const aperto = editRow.style.display !== 'none';
                 editRow.style.display = aperto ? 'none' : 'table-row';
                 btn.textContent = aperto ? '✎' : '✕';
-                if (!aperto) {
-                    const editBox = editRow.querySelector('.controlla-edit-box');
-                    if (editBox && !editBox.dataset.acInit) {
-                        editBox.dataset.acInit = '1';
-                        const { data: negozi } = await supabaseClient.from('negozi').select('id, nome, filiale').order('nome');
-                        creaAutocomplete({
-                            input: editBox.querySelector('.edit-negozio-input'),
-                            dropdown: editBox.querySelector('.edit-negozio-dropdown'),
-                            lista: negozi, mostraNuovo: false,
-                            onSelect: (n) => { editBox.dataset.negozioId = n.id; editBox.querySelector('.edit-negozio-input').value = n.nome; },
-                            onNuovo: () => { }
-                        });
-                    }
+                // Init autocomplete negozio al primo apertura
+                if (!aperto && !editRow.dataset.acInit) {
+                    editRow.dataset.acInit = '1';
+                    const { data: negozi } = await supabaseClient.from('negozi').select('id, nome, filiale').order('nome');
+                    const box = editRow.querySelector('.controlla-edit-box');
+                    creaAutocomplete({
+                        input: box.querySelector('.edit-negozio-input'),
+                        dropdown: box.querySelector('.edit-negozio-dropdown'),
+                        lista: negozi, mostraNuovo: false,
+                        onSelect: (n) => { box.dataset.negozioId = n.id; box.querySelector('.edit-negozio-input').value = n.nome; },
+                        onNuovo: () => { }
+                    });
                 }
                 return;
             }
 
+            // Annulla modifica
             if (e.target.closest('.spesa-btn-annulla')) {
-                const editId = e.target.closest('.spesa-btn-annulla').dataset.editId;
-                const editRow = document.getElementById(editId);
+                const listaId = e.target.closest('.spesa-btn-annulla').dataset.listaId;
+                const editRow = document.getElementById(`spesa-edit-${listaId}`);
                 if (editRow) editRow.style.display = 'none';
-                const listaId = editId.replace('spesa-edit-neg-', '').replace('spesa-edit-', '');
                 const btnAgg = contenuto.querySelector(`.spesa-btn-aggiorna[data-lista-id="${listaId}"]`);
                 if (btnAgg) btnAgg.textContent = '✎';
                 return;
             }
 
+            // Salva modifica
             if (e.target.closest('.spesa-btn-salva')) {
                 const btn = e.target.closest('.spesa-btn-salva');
-                const editRow = btn.closest('tr');
-                const editBox = editRow.querySelector('.controlla-edit-box');
+                const listaId = parseInt(btn.dataset.listaId);
                 const prezzoId = btn.dataset.prezzoId;
                 const prodottoId = parseInt(btn.dataset.prodottoId);
-                const variante = btn.dataset.variante || null;
-                const prezzo = parseFloat(editBox.querySelector('.edit-prezzo').value);
-                const quantita = parseFloat(editBox.querySelector('.edit-quantita').value);
-                const unita = editBox.querySelector('.edit-unita').value;
-                const negozioId = parseInt(editBox.dataset.negozioId);
-                const promo = editBox.querySelector('.edit-promo').value === 'true';
+                const item = lista.find(i => i.listaId === listaId);
+                if (!item) return;
+
+                const editRow = document.getElementById(`spesa-edit-${listaId}`);
+                const box = editRow.querySelector('.controlla-edit-box');
+                const prezzo = parseFloat(box.querySelector('.edit-prezzo').value);
+                const quantita = parseFloat(box.querySelector('.edit-quantita').value);
+                const unita = box.querySelector('.edit-unita').value;
+                const variante = box.querySelector('.edit-variante').value.trim().toLowerCase() || null;
+                const promo = box.querySelector('.edit-promo').value === 'true';
+                const note = box.querySelector('.edit-note').value.trim() || null;
+                const negozioId = parseInt(box.dataset.negozioId);
 
                 if (isNaN(prezzo) || isNaN(quantita) || !unita || isNaN(negozioId)) {
                     alert('Compila tutti i campi, incluso il negozio.'); return;
                 }
                 const prezzounita = calcolaPrezzoPer(prezzo, quantita, unita);
                 btn.disabled = true; btn.textContent = '…';
+
                 let error;
                 if (prezzoId) {
                     ({ error } = await supabaseClient.from('prezzi')
                         .update({
-                            prezzo, quantita, unita, prezzounita, promozione: promo,
+                            prezzo, quantita, unita, prezzounita, variante, promozione: promo, note,
                             datarilevazione: new Date().toISOString().slice(0, 10)
                         })
                         .eq('id', prezzoId));
@@ -438,7 +550,7 @@ async function initSpesa() {
                     ({ error } = await supabaseClient.from('prezzi')
                         .insert({
                             fkprodotto: prodottoId, fknegozio: negozioId, variante,
-                            prezzo, quantita, unita, prezzounita, promozione: promo,
+                            prezzo, quantita, unita, prezzounita, promozione: promo, note,
                             datarilevazione: new Date().toISOString().slice(0, 10)
                         }));
                 }

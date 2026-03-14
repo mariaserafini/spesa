@@ -2159,3 +2159,31 @@ body.login-page {
 .spesa-table .btn-azione {
     white-space: nowrap;
 }
+
+/* Titolo sezione spesa — come controlla-variante-titolo ma senza maiuscolo */
+.spesa-sezione-titolo {
+    padding: .6rem 1.25rem;
+    font-size: .82rem;
+    font-weight: 700;
+    color: var(--text);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    flex-wrap: wrap;
+}
+
+/* Prima colonna tabella spesa: usa tutto lo spazio disponibile */
+.controlla-table td:first-child .btn-nome {
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: anywhere;
+    hyphens: none;
+    display: block;
+}
+
+/* Impedisci alle colonne nowrap di schiacciare la prima */
+.controlla-table {
+    table-layout: auto;
+}
