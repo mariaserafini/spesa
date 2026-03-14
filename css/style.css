@@ -2095,64 +2095,67 @@ body.login-page {
 /* Spesa-table su mobile: layout flex, nome su riga intera, negozi affiancati */
 @media (max-width: 600px) {
     .spesa-table {
-        table-layout: auto !important;
+        table-layout: fixed !important;
+        /* Forza il rispetto delle larghezze */
+        width: 100% !important;
+        display: table !important;
+        /* Assicuriamoci che resti una tabella */
     }
 
-    /* Righe dati diventano flex */
-    .spesa-table tr:not(.controlla-edit-row) {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: flex-start;
-        padding: .5rem .75rem;
-        border-bottom: 1px solid var(--border);
+    .spesa-table tr {
+        display: table-row !important;
+        /* Ripristina la riga classica */
     }
 
     .spesa-table td,
     .spesa-table th {
-        display: block;
-        border: none;
-        padding: .1rem 0;
+        display: table-cell !important;
+        /* Ripristina la cella classica */
+        vertical-align: middle;
+        padding: 8px 4px !important;
+        /* Riduciamo il padding per guadagnare spazio */
     }
 
-    /* Riga edit: rimane table-row */
-    .spesa-table tr.controlla-edit-row {
-        display: none;
-    }
-
-    .spesa-table tr.controlla-edit-row[style*="table-row"] {
-        display: table-row !important;
-    }
-
-    .spesa-table tr.controlla-edit-row td {
-        display: table-cell;
-        padding: .5rem;
-    }
-
-    /* Col 1: nome, larghezza piena */
-    .spesa-table td:nth-child(1),
-    .spesa-table th:nth-child(1) {
-        width: 100%;
-        flex: 0 0 100%;
-        font-weight: 600;
+    /* COLONNA 1: Nome Prodotto - Deve espandersi */
+    .spesa-table td:nth-child(1) {
+        width: auto !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+        /* Permette il ritorno a capo solo se necessario */
         word-break: break-word;
-        hyphens: none;
-        overflow-wrap: break-word;
     }
 
-    /* Col 2 e 3: negozi affiancati */
-    .spesa-table td:nth-child(2),
-    .spesa-table th:nth-child(2),
-    .spesa-table td:nth-child(3),
-    .spesa-table th:nth-child(3) {
-        flex: 1;
-        /* min-width: 120px;*/
-        font-size: .83rem;
+    /* COLONNA 2: Prezzo/Suggerimento - Larghezza fissa per non schiacciare il nome */
+    .spesa-table td:nth-child(2) {
+        width: 100px !important;
+        /* Spazio sufficiente per "€ 0.00" o "Negozio" */
+        text-align: right;
+        font-size: 0.85rem;
     }
 
-    /* Col 4: azioni */
-    .spesa-table td:nth-child(4),
-    .spesa-table th:nth-child(4) {
-        width: auto;
-        margin-left: auto;
+    /* COLONNA 3: Azioni (Pulsanti) - Larghezza minima */
+    .spesa-table td:nth-child(3) {
+        width: 45px !important;
+        text-align: right;
     }
+
+    /* Reset dei font per mobile per guadagnare spazio */
+    .spesa-nome-principale {
+        font-size: 0.95rem !important;
+        line-height: 1.2;
+    }
+
+}
+
+/* spesa-table: nessun nowrap sulle celle — lascia che il browser distribuisca lo spazio */
+.spesa-table td,
+.spesa-table th {
+    white-space: normal !important;
+}
+
+/* Ma mantieni nowrap sui contenuti interni piccoli (pulsanti, badge) */
+.spesa-table .controlla-badges-row,
+.spesa-table .btn-azione {
+    white-space: nowrap;
 }

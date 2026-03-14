@@ -261,7 +261,7 @@ async function initSpesa() {
                 const editId = `spesa-edit-neg-${item.listaId}`;
                 return `
                     <tr>
-                        <td><button class="btn-nome spesa-btn-controlla" data-prodotto-nome="${item.nome}">${item.nome}</button>${varHtml}</td>
+                        <td> <div style="display:flex; align-items:center; gap: 0.5rem; width: 100%;"><span class="spesa-nome-principale" style="flex: 1; min-width: 0;"><button class="btn-nome spesa-btn-controlla" data-prodotto-nome="${item.nome}">${item.nome}</button>${varHtml}</span></div></td>
                         <td class="controlla-prezzo-unita">${puHtml}</td>
                         <td class="controlla-prezzo-formato">${fmtHtml}</td>
                         <td class="controlla-col-azioni">${azioniHtml}</td>
