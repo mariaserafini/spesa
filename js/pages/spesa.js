@@ -206,116 +206,128 @@ async function initSpesa() {
 
     // ---- Vista per prodotto ----
     function renderVistaProdotto(contenuto) {
-        // Mappa prezzoid → id DB (serve per conferma/aggiorna — prendiamo il record più recente)
-        // Carichiamo gli id dei prezzi recenti nella mappa durante il caricamento iniziale
-        const righeHtml = lista.map(item => {
+        const unitaBase = lista[0]?.unita || 'kg';
+
+        const righeHtml = [...lista].sort((a, b) => a.nome.localeCompare(b.nome) || (a.variante || '').localeCompare(b.variante || '')).map(item => {
             const tuttiPrezzi = prezziPerProdotto[item.prodottoId] || [];
             const prezzi = item.variante
                 ? tuttiPrezzi.filter(p => p.variante === item.variante)
                 : tuttiPrezzi;
             const migliore = prezzi[0];
-            const altri = prezzi.slice(1).filter(p => {
-                const scarto = (p.prezzounita - migliore.prezzounita) / migliore.prezzounita;
-                return scarto <= 0.10;
-            });
+            const altri = prezzi.slice(1).filter(p =>
+                (p.prezzounita - migliore.prezzounita) / migliore.prezzounita <= 0.10
+            );
 
-            const varLabel = item.variante ? ` <span class="analizza-variante">${item.variante}</span>` : '';
+            const varLabel = item.variante ? `<div class="controlla-note">${item.variante}</div>` : '';
+            const prezzoId = migliore ? migliore.prezzoId : null;
 
-            let suggerimentoHtml = '';
+            // Colonna negozio/prezzo: migliore + alternative
+            let negozioColHtml = '';
             if (!migliore) {
-                suggerimentoHtml = `
-                    <div class="spesa-no-prezzo-row">
-                        <span class="text-muted spesa-no-prezzo">Nessun prezzo recente —</span>
-                        <button class="btn-link spesa-btn-rileva" data-prodotto-id="${item.prodottoId}" data-prodotto-nome="${item.nome}" data-variante="${item.variante || ''}">+ Rileva</button>
-                    </div>`;
+                negozioColHtml = `<span class="text-muted" style="font-size:.82rem">Nessun prezzo recente</span>`;
             } else {
-                const formatoMigliore = migliore.quantita
-                    ? `<span class="controlla-prezzo-formato" style="font-size:.78rem">${migliore.quantita}${migliore.unita} (€ ${parseFloat(migliore.prezzo).toFixed(2)})</span>`
-                    : '';
-                suggerimentoHtml = `
-                    <div class="spesa-migliore">
-                        <span class="spesa-negozio-nome">${migliore.negozioNome}</span>
-                        <span class="spesa-prezzo">€ ${parseFloat(migliore.prezzounita).toFixed(2)}/${item.unita}</span>
-                        ${formatoMigliore}
-                    </div>`;
+                negozioColHtml = `<button class="btn-nome spea-btn-analizza spesa-btn-analizza" data-negozio-id="${migliore.negozioId}" data-negozio-nome="${migliore.negozioNome}" style="font-weight:600;color:var(--accent)">${migliore.negozioNome}</button>`;
                 if (altri.length > 0) {
-                    suggerimentoHtml += altri.map(a => {
+                    negozioColHtml += altri.map(a => {
                         const pct = Math.round((a.prezzounita - migliore.prezzounita) / migliore.prezzounita * 100);
-                        return `<div class="spesa-alternativa">
-                            ${a.negozioNome}
-                            <span class="spesa-prezzo-alt">€ ${parseFloat(a.prezzounita).toFixed(2)} (+${pct}%)</span>
-                        </div>`;
+                        return `<div class="controlla-note"><button class="btn-nome spesa-btn-analizza" data-negozio-id="${a.negozioId}" data-negozio-nome="${a.negozioNome}">${a.negozioNome}</button> <span class="controlla-scarto">+${pct}%</span></div>`;
                     }).join('');
                 }
             }
 
-            // Pulsanti azione — usa prezzoId se disponibile
-            const prezzoId = migliore ? migliore.prezzoId : null;
+            const prezzoUnitaHtml = migliore
+                ? `€ ${parseFloat(migliore.prezzounita).toFixed(2)}`
+                : '';
+            const formatoHtml = migliore
+                ? `${migliore.quantita}${migliore.unita}<br>(€ ${parseFloat(migliore.prezzo).toFixed(2)})`
+                : '';
+
             const azioniHtml = `
-                <div class="spesa-azioni">
+                <div class="controlla-badges-row">
                     ${prezzoId ? `
                         <button class="btn-azione btn-conferma spesa-btn-conferma" data-id="${prezzoId}" title="Prezzo ancora valido">✓</button>
                         <button class="btn-azione btn-aggiorna spesa-btn-aggiorna" data-id="${prezzoId}" data-lista-id="${item.listaId}" title="Modifica">✎</button>
                     ` : `
                         <button class="btn-azione btn-aggiorna spesa-btn-aggiorna" data-id="" data-lista-id="${item.listaId}" data-prodotto-id="${item.prodottoId}" data-variante="${item.variante || ''}" title="Aggiungi rilevazione">✎</button>
                     `}
-                    <button class="btn-link spesa-btn-controlla" data-prodotto-nome="${item.nome}" title="Vai a Controlla">↗</button>
                     <button class="btn-rimuovi-spesa" data-id="${item.listaId}" title="Rimuovi dalla lista">✕</button>
                 </div>`;
 
             const editId = `spesa-edit-${item.listaId}`;
             const editHtml = `
-                <div class="analizza-edit-box" id="${editId}" style="display:none">
-                    <div class="controlla-edit-fields">
-                        <div class="field">
-                            <label>Prezzo (€)</label>
-                            <input type="number" class="edit-prezzo" value="${migliore ? migliore.prezzo || '' : ''}" min="0" step="0.01" />
-                        </div>
-                        <div class="field">
-                            <label>Quantità</label>
-                            <input type="number" class="edit-quantita" value="${migliore ? migliore.quantita || '' : ''}" min="0" step="any" />
-                        </div>
-                        <div class="field">
-                            <label>Unità</label>
-                            <select class="edit-unita">
-                                ${['g', 'kg', 'mg', 'ml', 'cl', 'dl', 'l', 'pz'].map(u =>
-                `<option value="${u}" ${u === (migliore ? migliore.unita : item.unita) ? 'selected' : ''}>${u}</option>`
-            ).join('')}
-                            </select>
-                        </div>
-                        <div class="field">
-                            <label>Negozio</label>
-                            <div class="ac-wrapper">
-                                <input type="text" class="edit-negozio-input" placeholder="es. Lidl" autocomplete="off" value="${migliore ? migliore.negozioNome : ''}" />
-                                <div class="ac-dropdown edit-negozio-dropdown"></div>
+                <tr class="controlla-edit-row" id="${editId}" style="display:none">
+                    <td colspan="4">
+                        <div class="controlla-edit-box">
+                            <div class="controlla-edit-fields">
+                                <div class="field">
+                                    <label>Prezzo (€)</label>
+                                    <input type="number" class="edit-prezzo" value="${migliore ? migliore.prezzo || '' : ''}" min="0" step="0.01" />
+                                </div>
+                                <div class="field">
+                                    <label>Quantità</label>
+                                    <input type="number" class="edit-quantita" value="${migliore ? migliore.quantita || '' : ''}" min="0" step="any" />
+                                </div>
+                                <div class="field">
+                                    <label>Unità</label>
+                                    <select class="edit-unita">
+                                        ${['g', 'kg', 'mg', 'ml', 'cl', 'dl', 'l', 'pz'].map(u =>
+                `<option value="${u}" ${u === (migliore ? migliore.unita : item.unita) ? 'selected' : ''
+                }>${u}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label>Negozio</label>
+                                    <div class="ac-wrapper">
+                                        <input type="text" class="edit-negozio-input" placeholder="es. Lidl" autocomplete="off" value="${migliore ? migliore.negozioNome : ''}" />
+                                        <div class="ac-dropdown edit-negozio-dropdown"></div>
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <label>Promo</label>
+                                    <select class="edit-promo">
+                                        <option value="false">No</option>
+                                        <option value="true">Sì</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="controlla-edit-actions">
+                                <button class="btn btn-primary btn-sm spesa-btn-salva" data-prezzo-id="${prezzoId || ''}" data-prodotto-id="${item.prodottoId}" data-variante="${item.variante || ''}" data-lista-id="${item.listaId}">Salva</button>
+                                <button class="btn btn-ghost btn-sm spesa-btn-annulla" data-edit-id="${editId}">Annulla</button>
                             </div>
                         </div>
-                        <div class="field">
-                            <label>Promo</label>
-                            <select class="edit-promo">
-                                <option value="false">No</option>
-                                <option value="true">Sì</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="controlla-edit-actions">
-                        <button class="btn btn-primary btn-sm spesa-btn-salva" data-prezzo-id="${prezzoId || ''}" data-prodotto-id="${item.prodottoId}" data-variante="${item.variante || ''}" data-lista-id="${item.listaId}">Salva</button>
-                        <button class="btn btn-ghost btn-sm spesa-btn-annulla" data-edit-id="${editId}">Annulla</button>
-                    </div>
-                </div>`;
+                    </td>
+                </tr>`;
 
             return `
-                <div class="spesa-riga card" id="spesa-riga-${item.listaId}">
-                    <div class="spesa-riga-header">
-                        <span class="spesa-prodotto-nome">${item.nome}${varLabel}</span>
+                <tr>
+                    <td>
+                        <button class="btn-nome spesa-btn-controlla controlla-negozio" data-prodotto-nome="${item.nome}">${item.nome}</button>
+                        ${varLabel}
+                    </td>
+                    <td class="controlla-prezzo-unita">${prezzoUnitaHtml}</td>
+                    <td class="controlla-prezzo-formato">${formatoHtml}</td>
+                    <td class="controlla-col-azioni">
+                        ${negozioColHtml}
                         ${azioniHtml}
-                    </div>
-                    <div class="spesa-suggerimenti">${suggerimentoHtml}</div>
-                    ${editHtml}
-                </div>`;
+                    </td>
+                </tr>
+                ${editHtml}`;
         }).join('');
 
-        contenuto.innerHTML = `<div class="spesa-lista-prodotti">${righeHtml}</div>`;
+        contenuto.innerHTML = `
+            <div class="card" style="padding:0; overflow:hidden">
+                <div class="table-responsive">
+                    <table class="results-table controlla-table">
+                        <thead><tr>
+                            <th>Prodotto</th>
+                            <th>€ / ${unitaBase}</th>
+                            <th>Formato</th>
+                            <th>Negozio migliore</th>
+                        </tr></thead>
+                        <tbody>${righeHtml}</tbody>
+                    </table>
+                </div>
+            </div>`;
 
         // ---- Listener ----
         contenuto.addEventListener('click', async e => {
@@ -334,13 +346,6 @@ async function initSpesa() {
                     input.value = nome;
                     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
                 }
-                return;
-            }
-
-            // Vai a Rileva
-            if (e.target.closest('.spesa-btn-rileva')) {
-                const btn = e.target.closest('.spesa-btn-rileva');
-                navigate('rileva-manuale', { nomeProdotto: btn.dataset.prodottoNome, nomeVariante: btn.dataset.variante });
                 return;
             }
 
@@ -477,79 +482,86 @@ async function initSpesa() {
                 : `🏪 <button class="btn-link spesa-btn-analizza" data-negozio-id="${negozioId}" data-negozio-nome="${negNome}" style="font-weight:700;font-size:inherit">${negNome}</button>`;
             const titolo = titoloInner;
 
+            const unitaBase = prodotti[0]?.item.unita || 'kg';
+
             const righe = prodotti.map(({ item, migliore }) => {
-                const varLabel = item.variante ? ` <span class="analizza-variante">${item.variante}</span>` : '';
+                const varLabel = item.variante ? `<div class="controlla-note">${item.variante}</div>` : '';
                 const prezzoId = migliore ? migliore.prezzoId : null;
                 const editId = `spesa-edit-neg-${item.listaId}`;
 
-                const pLabel = migliore
-                    ? `<span class="spesa-prezzo">€ ${parseFloat(migliore.prezzounita).toFixed(2)}/${item.unita}</span>
-                       <span class="controlla-prezzo-formato" style="font-size:.78rem">${migliore.quantita}${migliore.unita} (€ ${parseFloat(migliore.prezzo).toFixed(2)})</span>`
+                const prezzoUnitaHtml = migliore
+                    ? `€ ${parseFloat(migliore.prezzounita).toFixed(2)}`
+                    : `<span class="text-muted" style="font-size:.8rem">—</span>`;
+                const formatoHtml = migliore
+                    ? `${migliore.quantita}${migliore.unita}<br>(€ ${parseFloat(migliore.prezzo).toFixed(2)})`
                     : '';
 
                 const azioniHtml = `
-                    <div class="spesa-azioni">
+                    <div class="controlla-badges-row">
                         ${prezzoId ? `
                             <button class="btn-azione btn-conferma spesa-btn-conferma" data-id="${prezzoId}" title="Prezzo ancora valido">✓</button>
                             <button class="btn-azione btn-aggiorna spesa-btn-aggiorna" data-id="${prezzoId}" data-lista-id="${item.listaId}" data-edit-suffix="neg-" title="Modifica">✎</button>
                         ` : `
                             <button class="btn-azione btn-aggiorna spesa-btn-aggiorna" data-id="" data-lista-id="${item.listaId}" data-edit-suffix="neg-" data-prodotto-id="${item.prodottoId}" data-variante="${item.variante || ''}" title="Aggiungi rilevazione">✎</button>
                         `}
-                        <button class="btn-link spesa-btn-controlla" data-prodotto-nome="${item.nome}" title="Vai a Controlla">↗</button>
                         <button class="btn-rimuovi-spesa" data-id="${item.listaId}" title="Rimuovi">✕</button>
                     </div>`;
 
                 const editHtml = `
-                    <div class="analizza-edit-box" id="${editId}" style="display:none">
-                        <div class="controlla-edit-fields">
-                            <div class="field">
-                                <label>Prezzo (€)</label>
-                                <input type="number" class="edit-prezzo" value="${migliore ? migliore.prezzo || '' : ''}" min="0" step="0.01" />
-                            </div>
-                            <div class="field">
-                                <label>Quantità</label>
-                                <input type="number" class="edit-quantita" value="${migliore ? migliore.quantita || '' : ''}" min="0" step="any" />
-                            </div>
-                            <div class="field">
-                                <label>Unità</label>
-                                <select class="edit-unita">
-                                    ${['g', 'kg', 'mg', 'ml', 'cl', 'dl', 'l', 'pz'].map(u =>
-                    `<option value="${u}" ${u === (migliore ? migliore.unita : item.unita) ? 'selected' : ''}>${u}</option>`
-                ).join('')}
-                                </select>
-                            </div>
-                            <div class="field">
-                                <label>Negozio</label>
-                                <div class="ac-wrapper">
-                                    <input type="text" class="edit-negozio-input" placeholder="es. Lidl" autocomplete="off" value="${migliore ? migliore.negozioNome : ''}" />
-                                    <div class="ac-dropdown edit-negozio-dropdown"></div>
+                    <tr class="controlla-edit-row" id="${editId}" style="display:none">
+                        <td colspan="4">
+                            <div class="controlla-edit-box">
+                                <div class="controlla-edit-fields">
+                                    <div class="field">
+                                        <label>Prezzo (€)</label>
+                                        <input type="number" class="edit-prezzo" value="${migliore ? migliore.prezzo || '' : ''}" min="0" step="0.01" />
+                                    </div>
+                                    <div class="field">
+                                        <label>Quantità</label>
+                                        <input type="number" class="edit-quantita" value="${migliore ? migliore.quantita || '' : ''}" min="0" step="any" />
+                                    </div>
+                                    <div class="field">
+                                        <label>Unità</label>
+                                        <select class="edit-unita">
+                                            ${['g', 'kg', 'mg', 'ml', 'cl', 'dl', 'l', 'pz'].map(u =>
+                    `<option value="${u}" ${u === (migliore ? migliore.unita : item.unita) ? 'selected' : ''
+                    }>${u}</option>`).join('')}
+                                        </select>
+                                    </div>
+                                    <div class="field">
+                                        <label>Negozio</label>
+                                        <div class="ac-wrapper">
+                                            <input type="text" class="edit-negozio-input" placeholder="es. Lidl" autocomplete="off" value="${migliore ? migliore.negozioNome : ''}" />
+                                            <div class="ac-dropdown edit-negozio-dropdown"></div>
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <label>Promo</label>
+                                        <select class="edit-promo">
+                                            <option value="false">No</option>
+                                            <option value="true">Sì</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="controlla-edit-actions">
+                                    <button class="btn btn-primary btn-sm spesa-btn-salva" data-prezzo-id="${prezzoId || ''}" data-prodotto-id="${item.prodottoId}" data-variante="${item.variante || ''}" data-lista-id="${item.listaId}">Salva</button>
+                                    <button class="btn btn-ghost btn-sm spesa-btn-annulla" data-edit-id="${editId}">Annulla</button>
                                 </div>
                             </div>
-                            <div class="field">
-                                <label>Promo</label>
-                                <select class="edit-promo">
-                                    <option value="false">No</option>
-                                    <option value="true">Sì</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="controlla-edit-actions">
-                            <button class="btn btn-primary btn-sm spesa-btn-salva" data-prezzo-id="${prezzoId || ''}" data-prodotto-id="${item.prodottoId}" data-variante="${item.variante || ''}" data-lista-id="${item.listaId}">Salva</button>
-                            <button class="btn btn-ghost btn-sm spesa-btn-annulla" data-edit-id="${editId}">Annulla</button>
-                        </div>
-                    </div>`;
+                        </td>
+                    </tr>`;
 
                 return `
-                    <div class="spesa-negozio-riga spesa-negozio-riga-ext">
-                        <div class="spesa-negozio-riga-top">
-                            <span class="spesa-prodotto-nome" style="font-size:.9rem">${item.nome}${varLabel}</span>
-                            <div style="display:flex; align-items:center; gap:.35rem; flex-wrap:wrap">
-                                ${pLabel}
-                                ${azioniHtml}
-                            </div>
-                        </div>
-                        ${editHtml}
-                    </div>`;
+                    <tr>
+                        <td>
+                            <button class="btn-nome spesa-btn-controlla controlla-negozio" data-prodotto-nome="${item.nome}">${item.nome}</button>
+                            ${varLabel}
+                        </td>
+                        <td class="controlla-prezzo-unita">${prezzoUnitaHtml}</td>
+                        <td class="controlla-prezzo-formato">${formatoHtml}</td>
+                        <td class="controlla-col-azioni">${azioniHtml}</td>
+                    </tr>
+                    ${editHtml}`;
             }).join('');
 
             return `
@@ -557,7 +569,17 @@ async function initSpesa() {
                     <div class="spesa-negozio-titolo">${titolo}
                         <span class="analizza-box-count">${prodotti.length}</span>
                     </div>
-                    <div class="spesa-negozio-lista">${righe}</div>
+                    <div class="table-responsive">
+                        <table class="results-table controlla-table">
+                            <thead><tr>
+                                <th>Prodotto</th>
+                                <th>€ / ${unitaBase}</th>
+                                <th>Formato</th>
+                                <th></th>
+                            </tr></thead>
+                            <tbody>${righe}</tbody>
+                        </table>
+                    </div>
                 </div>`;
         }).join('');
 
@@ -601,7 +623,8 @@ async function initSpesa() {
                 const editId = `spesa-edit-${suffix}${btn.dataset.listaId}`;
                 const editBox = document.getElementById(editId);
                 const aperto = editBox.style.display !== 'none';
-                editBox.style.display = aperto ? 'none' : 'block';
+                const isTr = editBox.tagName === 'TR';
+                editBox.style.display = aperto ? 'none' : (isTr ? 'table-row' : 'block');
                 btn.textContent = aperto ? '✎' : '✕';
                 if (!aperto && !editBox.dataset.acInit) {
                     editBox.dataset.acInit = '1';

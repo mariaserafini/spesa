@@ -238,6 +238,9 @@ async function analizzaNegozio(negozio) {
             const noteHtml = item.note ? `<div class="controlla-note">${item.note}</div>` : '';
 
             const { testo: tempoTesto, badge: tempoBadge } = calcolaEtaTesto(item.data);
+            const scartoPct = item.min && item.prezzounita > item.min.prezzounita
+                ? `<div class="controlla-scarto">+${Math.round((item.prezzounita - item.min.prezzounita) / item.min.prezzounita * 100)}%</div>`
+                : '';
 
             let minHtml = '';
             if (mostraMin && item.min) {
@@ -250,10 +253,14 @@ async function analizzaNegozio(negozio) {
             return `
                 <tr data-id="${item.id}">
                     <td>
-                        <div class="controlla-negozio">${item.nome} ${badgeHtml}</div>
+                        <div class="controlla-negozio analizza-nome-row"><button class="btn-nome spesa-btn-controlla" data-prodotto-nome="${item.nome}">${item.nome}</button>${badgeHtml}</div>
                         ${varHtml}${noteHtml}
+                        ${minHtml}
                     </td>
-                    <td class="controlla-prezzo-unita">€ ${parseFloat(item.prezzounita).toFixed(2)}</td>
+                    <td class="controlla-prezzo-unita">
+                        € ${parseFloat(item.prezzounita).toFixed(2)}
+                        ${scartoPct}
+                    </td>
                     <td class="controlla-prezzo-formato">
                         ${item.quantita}${item.unita} <br> (€ ${parseFloat(item.prezzo).toFixed(2)})
                     </td>
@@ -263,9 +270,7 @@ async function analizzaNegozio(negozio) {
                             ${promoHtml}
                             <button class="btn-azione btn-conferma" data-id="${item.id}" title="Prezzo ancora valido — aggiorna solo la data">✓</button>
                             <button class="btn-azione btn-aggiorna" data-id="${item.id}" title="Modifica dati">✎</button>
-                            <button class="btn-link spesa-btn-controlla" data-prodotto-nome="${item.nome}" title="Vai a Controlla" style="width:26px;height:26px;border:1px solid var(--border);border-radius:var(--radius-sm);display:inline-flex;align-items:center;justify-content:center">↗</button>
                         </div>
-                        ${minHtml}
                     </td>
                 </tr>
                 <tr class="controlla-edit-row" id="edit-${item.id}" style="display:none">

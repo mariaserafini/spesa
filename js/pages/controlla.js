@@ -131,6 +131,7 @@ async function cercaRilevazioni(prodotto) {
             ? `<div class="controlla-variante-titolo">${etichettaVariante}</div>`
             : (variantiKeys.length > 1 ? `<div class="controlla-variante-titolo controlla-variante-base">base</div>` : '');
 
+        const prezzoMin = righeVariante[0].prezzounita;
         const righeHtml = righeVariante.map((r, i) => {
             const negozioLabel = r.negozi.filiale
                 ? `<button class="btn-link controlla-btn-analizza" data-negozio-id="${r.negozi.id}" data-negozio-nome="${r.negozi.nome}">${r.negozi.nome}</button> <span class="text-muted">(${r.negozi.filiale})</span>`
@@ -139,6 +140,7 @@ async function cercaRilevazioni(prodotto) {
             const { testo: tempoTesto, badge: tempoBadge } = calcolaEtaTesto(r.datarilevazione);
             const promoHtml = r.promozione ? `<span class="badge badge-promo">promo</span>` : '';
             const bestHtml = i === 0 ? `<span class="badge badge-best">migliore</span>` : '';
+            const scartoPct = i === 0 ? '' : `<div class="controlla-scarto">+${Math.round((r.prezzounita - prezzoMin) / prezzoMin * 100)}%</div>`;
             const prezzoUnitaLabel = `€ ${parseFloat(r.prezzounita).toFixed(2)}`;
             const noteHtml = r.note ? `<div class="controlla-note">${r.note}</div>` : '';
 
@@ -148,7 +150,7 @@ async function cercaRilevazioni(prodotto) {
                         <div class="controlla-negozio">${negozioLabel}</div>
                         ${noteHtml}
                     </td>
-                    <td class="controlla-prezzo-unita">${prezzoUnitaLabel}</td>
+                    <td class="controlla-prezzo-unita">${prezzoUnitaLabel}${scartoPct}</td>
                     <td class="controlla-prezzo-formato">
                         ${r.quantita}${r.unita} <br> (€ ${parseFloat(r.prezzo).toFixed(2)})
                     </td>

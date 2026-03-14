@@ -1751,3 +1751,64 @@ body.login-page {
     gap: .5rem;
     flex-wrap: wrap;
 }
+
+/* Scarto % rispetto al minimo */
+.controlla-scarto {
+    font-size: .72rem;
+    color: #9b1c1c;
+    font-weight: 600;
+    margin-top: .1rem;
+}
+
+/* Prezzo/kg + formato in colonna nella vista negozio spesa */
+.spesa-prezzo-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: .1rem;
+}
+
+/* Suggerimenti centrati nella vista prodotto spesa */
+.spesa-suggerimenti-central {
+    margin-top: .35rem;
+    padding-top: .35rem;
+    border-top: 1px solid var(--border);
+}
+
+/* Nome prodotto/negozio cliccabile — inline, senza aspetto pulsante */
+.btn-nome {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    text-align: left;
+    display: inline;
+    text-decoration: none;
+}
+
+.btn-nome:hover {
+    color: var(--accent);
+}
+
+/* Prima colonna analizza — nome + badge sulla stessa riga */
+.analizza-nome-row {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    flex-wrap: nowrap;
+}
+
+.analizza-nome-row .btn-nome {
+    white-space: normal;
+    word-break: break-word;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.analizza-nome-row .analizza-count,
+.analizza-nome-row .badge-unico {
+    flex-shrink: 0;
+}
