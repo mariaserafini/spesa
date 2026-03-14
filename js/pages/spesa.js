@@ -184,14 +184,14 @@ async function initSpesa() {
                 const varHtml = item.variante ? `<div class="controlla-note">${item.variante}</div>` : '';
 
                 const neg1Html = n1
-                    ? `<div><button class="btn-nome spesa-btn-analizza" data-negozio-id="${n1.negozioId}" data-negozio-nome="${n1.negozioNome}" style="color:var(--accent);font-weight:600">${n1.negozioNome}</button></div>
-                       <div class="controlla-prezzo-unita" style="font-size:.88rem">€ ${parseFloat(n1.prezzounita).toFixed(2)}/${item.unita}</div>
+                    ? `<div><button class="btn-nome spesa-btn-analizza" data-negozio-id="${n1.negozioId}" data-negozio-nome="${n1.negozioNome}" style="color:var(--accent);font-weight:600" >${n1.negozioNome}</button>
+                       € ${parseFloat(n1.prezzounita).toFixed(2)}</div>
                        <div class="controlla-prezzo-formato">${n1.quantita}${n1.unita} (€ ${parseFloat(n1.prezzo).toFixed(2)})</div>`
                     : `<span class="text-muted">Nessun prezzo recente</span>`;
 
                 const pct2 = n2 && n1 ? Math.round((n2.prezzounita - n1.prezzounita) / n1.prezzounita * 100) : 0;
                 const neg2Html = n2
-                    ? `<div><button class="btn-nome spesa-btn-analizza" data-negozio-id="${n2.negozioId}" data-negozio-nome="${n2.negozioNome}">${n2.negozioNome}</button> <span class="controlla-scarto">+${pct2}%</span></div>
+                    ? `<div><button class="btn-nome spesa-btn-analizza" data-negozio-id="${n2.negozioId}" data-negozio-nome="${n2.negozioNome}">${n2.negozioNome}</button>  € ${parseFloat(n2.prezzounita).toFixed(2)} <span class="controlla-scarto">+${pct2}%</span></div>
                        <div class="controlla-prezzo-formato">${n2.quantita}${n2.unita} (€ ${parseFloat(n2.prezzo).toFixed(2)})</div>`
                     : '';
 
@@ -251,7 +251,7 @@ async function initSpesa() {
             const righe = [...items].sort((a, b) => a.item.nome.localeCompare(b.item.nome)).map(({ item, prezzoRec }) => {
                 const prezzoId = prezzoRec?.prezzoId || null;
                 const varHtml = item.variante ? `<div class="controlla-note">${item.variante}</div>` : '';
-                const puHtml = prezzoRec ? `€ ${parseFloat(prezzoRec.prezzounita).toFixed(2)}/${item.unita}` : '—';
+                const puHtml = prezzoRec ? `€ ${parseFloat(prezzoRec.prezzounita).toFixed(2)}` : '—';
                 const fmtHtml = prezzoRec ? `${prezzoRec.quantita}${prezzoRec.unita}<br>(€ ${parseFloat(prezzoRec.prezzo).toFixed(2)})` : '';
                 const azioniHtml = `<div class="controlla-badges-row">
                     ${prezzoId ? `<button class="btn-azione btn-conferma spesa-btn-conferma" data-id="${prezzoId}" title="Conferma">✓</button>` : ''}
