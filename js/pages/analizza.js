@@ -259,8 +259,7 @@ async function analizzaNegozio(negozio) {
                         ${minHtml}
                     </td>
                     <td class="controlla-prezzo-unita">
-                        € ${parseFloat(item.prezzounita).toFixed(2)}
-                        ${scartoPct}
+                        <div class="prezzo-col">€ ${parseFloat(item.prezzounita).toFixed(2)}${formatoMobile}${scartoPct}</div>
                     </td>
                     <td class="controlla-prezzo-formato">
                         ${item.quantita}${item.unita} <br> (€ ${parseFloat(item.prezzo).toFixed(2)})

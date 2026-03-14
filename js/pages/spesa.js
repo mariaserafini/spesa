@@ -241,6 +241,7 @@ async function initSpesa() {
             const formatoHtml = migliore
                 ? `${migliore.quantita}${migliore.unita}<br>(€ ${parseFloat(migliore.prezzo).toFixed(2)})`
                 : '';
+            const formatoMobile = migliore?.quantita ? `<span class="controlla-formato-mobile">${migliore.quantita}${migliore.unita}</span>` : '';
 
             const azioniHtml = `
                 <div class="controlla-badges-row">
@@ -304,12 +305,12 @@ async function initSpesa() {
                         <button class="btn-nome spesa-btn-controlla controlla-negozio" data-prodotto-nome="${item.nome}">${item.nome}</button>
                         ${varLabel}
                     </td>
-                    <td class="controlla-prezzo-unita">${prezzoUnitaHtml}${formatoMobile}</td>
-                    <td class="controlla-prezzo-formato">${formatoHtml}</td>
-                    <td class="controlla-col-azioni">
-                        ${negozioColHtml}
-                        ${azioniHtml}
+                    <td class="controlla-prezzo-unita">
+                        <div class="prezzo-col">${prezzoUnitaHtml}${formatoMobile}</div>
+                        <div class="spesa-negozio-sotto">${negozioColHtml}</div>
                     </td>
+                    <td class="controlla-prezzo-formato">${formatoHtml}</td>
+                    <td class="controlla-col-azioni">${azioniHtml}</td>
                 </tr>
                 ${editHtml}`;
         }).join('');
@@ -346,6 +347,13 @@ async function initSpesa() {
                     input.value = nome;
                     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
                 }
+                return;
+            }
+
+            // Vai ad Analizza negozio
+            if (e.target.closest('.spesa-btn-analizza')) {
+                const btn = e.target.closest('.spesa-btn-analizza');
+                navigate('analizza', { negozio: { id: parseInt(btn.dataset.negozioId), nome: btn.dataset.negozioNome, filiale: null } });
                 return;
             }
 
@@ -558,7 +566,7 @@ async function initSpesa() {
                             <button class="btn-nome spesa-btn-controlla controlla-negozio" data-prodotto-nome="${item.nome}">${item.nome}</button>
                             ${varLabel}
                         </td>
-                        <td class="controlla-prezzo-unita">${prezzoUnitaHtml}${formatoMobile}</td>
+                        <td class="controlla-prezzo-unita"><div class="prezzo-col">${prezzoUnitaHtml}${formatoMobile}</div></td>
                         <td class="controlla-prezzo-formato">${formatoHtml}</td>
                         <td class="controlla-col-azioni">${azioniHtml}</td>
                     </tr>

@@ -1924,3 +1924,28 @@ body.login-page {
         overflow-wrap: break-word;
     }
 }
+
+/* Formato mobile: nascosto su desktop, visibile solo su mobile */
+.controlla-formato-mobile {
+    display: none;
+}
+
+@media (max-width: 600px) {
+    .controlla-formato-mobile {
+        display: block;
+    }
+}
+
+/* Contenitore colonna prezzo: prezzo, formato mobile e scarto in colonna */
+.prezzo-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .05rem;
+}
+
+/* Negozio migliore sotto il prezzo nella vista per prodotto */
+.spesa-negozio-sotto {
+    margin-top: .2rem;
+    font-size: .82rem;
+}
