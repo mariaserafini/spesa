@@ -981,7 +981,7 @@ body.login-page {
     text-align: right;
 }
 
-.controlla-best td {
+.controlla-table .controlla-best td {
     background: #fffdf5;
 }
 
@@ -1449,13 +1449,27 @@ body.login-page {
         width: 100%;
     }
 
-    /* Colonne analizza/controlla: Prodotto 38% | Prezzo 28% | Formato nascosto | Azioni 34% */
+    /* Larghezze colonne: Prima(nome) 42% | Prezzo 22% | Formato nascosto | Azioni 36% */
+    .controlla-table th:nth-child(1),
+    .controlla-table td:nth-child(1) {
+        width: 42%;
+    }
 
+    .controlla-table th:nth-child(2),
+    .controlla-table td:nth-child(2) {
+        width: 22%;
+    }
 
+    /* Formato (3a colonna) nascosto su mobile */
+    .controlla-table th:nth-child(3),
+    .controlla-table td:nth-child(3) {
+        display: none;
+    }
 
-
-    /* Formato nascosto su mobile per analizza/controlla */
-
+    .controlla-table th:nth-child(4),
+    .controlla-table td:nth-child(4) {
+        width: 36%;
+    }
 
 
 
@@ -1591,4 +1605,250 @@ body.login-page {
     .controlla-table {
         table-layout: auto;
     }
+
+    /* Prima colonna spesa: nessun troncamento forzato */
+    .controlla-table td:first-child {
+        word-break: normal;
+        overflow-wrap: break-word;
+        hyphens: none;
+    }
+
+    /* Riga titolo prodotto nella vista per prodotto della spesa */
+
+    /* ---- Titolo sezione spesa (prodotto o negozio) ---- */
+    .spesa-titolo-sezione {
+        text-transform: none;
+        letter-spacing: normal;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+
+    .spesa-titolo-sezione .btn-nome {
+        color: var(--accent) !important;
+        font-weight: 700;
+        font-size: .85rem;
+        display: inline-block !important;
+        white-space: nowrap !important;
+        vertical-align: middle;
+    }
+
+    .spesa-titolo-variante {
+        font-size: .82rem;
+        font-weight: 400;
+        color: var(--accent);
+        opacity: .75;
+    }
+}
+/* ============================================================
+   SPESA — layout card mobile-first
+   ============================================================ */
+
+/* Card prodotto (vista per prodotto) */
+.sl-card {
+    padding: .75rem 1rem;
+    margin-top: .75rem;
+}
+
+/* Header card: nome + pulsanti */
+.sl-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .5rem;
+    margin-bottom: .4rem;
+}
+
+.sl-header-azioni {
+    display: flex;
+    gap: .25rem;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+/* Nome prodotto/negozio cliccabile */
+.sl-nome {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-weight: 700;
+    font-size: .95rem;
+    color: var(--text);
+    cursor: pointer;
+    text-align: left;
+    line-height: 1.3;
+}
+.sl-nome:hover { color: var(--accent); }
+
+/* Link negozio (testo arancione) */
+.sl-link {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    color: var(--text-2);
+    font-weight: 600;
+    font-size: .88rem;
+    cursor: pointer;
+    text-align: left;
+}
+.sl-link:hover { color: var(--accent); text-decoration: underline; }
+
+/* Variante piccola accanto al nome */
+.sl-variante {
+    font-weight: 400;
+    font-size: .8rem;
+    color: var(--muted);
+    margin-left: .2rem;
+}
+
+/* Riga negozio (prezzi) */
+.sl-riga {
+    display: flex;
+    align-items: baseline;
+    gap: .5rem;
+    flex-wrap: wrap;
+    padding: .25rem 0;
+    border-top: 1px solid var(--border);
+    font-size: .88rem;
+}
+
+.sl-dati {
+    display: flex;
+    align-items: baseline;
+    gap: .4rem;
+    flex-wrap: wrap;
+    font-size: .85rem;
+}
+
+.sl-prezzo {
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 700;
+    color: var(--accent);
+    white-space: nowrap;
+    font-size: .9rem;
+}
+
+.sl-formato {
+    color: var(--muted);
+    font-size: .78rem;
+    white-space: nowrap;
+}
+
+.sl-alt {
+    color: var(--text-2);
+    font-size: .8rem;
+    white-space: nowrap;
+}
+
+/* Sezione negozio (vista per negozio) */
+.sl-sezione {
+    padding: 0;
+    overflow: hidden;
+    margin-top: .75rem;
+}
+
+.sl-sezione-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .65rem 1rem;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    gap: .5rem;
+}
+
+.sl-sezione-nome {
+    background: none;
+    border: none;
+    padding: 0;
+    font-weight: 700;
+    font-size: .95rem;
+    color: var(--text);
+    cursor: pointer;
+    text-align: left;
+}
+.sl-sezione-nome:hover { color: var(--accent); }
+
+/* Riga prodotto nella vista negozio */
+.sl-riga-negozio {
+    padding: .6rem 1rem;
+    border-bottom: 1px solid var(--border);
+}
+.sl-riga-negozio:last-child { border-bottom: none; }
+
+.sl-riga-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .5rem;
+    margin-bottom: .25rem;
+}
+
+/* Form modifica */
+.sl-edit {
+    margin-top: .5rem;
+    padding-top: .5rem;
+    border-top: 1px dashed var(--border);
+}
+
+.sl-note-prodotto {
+    font-size: .75rem;
+    color: var(--muted);
+    margin-top: .1rem;
+}
+
+.sl-note {
+    font-size: .75rem;
+    color: var(--muted);
+    font-style: italic;
+}
+
+/* Header prodotto: sfondo tenue per distinguere dal negozio */
+.sl-header {
+    background: var(--surface-2);
+    border-radius: var(--radius-sm);
+    padding: .5rem .6rem;
+    margin-bottom: .35rem;
+}
+
+/* Nome negozio: colore diverso dal prodotto */
+.sl-link[data-negozio-id] {
+    color: var(--text-2);
+}
+.sl-link[data-negozio-id]:hover { color: var(--accent); }
+
+/* Layout interno riga negozio (vista prodotto) */
+.sl-riga-inner {
+    flex: 1;
+    min-width: 0;
+}
+.sl-riga {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-wrap: nowrap;
+}
+
+/* Riga dati nella vista negozio */
+.sl-riga-dati {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    margin-top: .2rem;
+}
+
+/* Riga alternativa (secondo negozio, vista negozio) */
+.sl-riga-alt {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    flex-wrap: wrap;
+    font-size: .82rem;
+    color: var(--text-2);
+    margin-top: .15rem;
+    padding-top: .15rem;
+    border-top: 1px dashed var(--border);
 }
