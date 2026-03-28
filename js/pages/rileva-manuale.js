@@ -24,18 +24,12 @@ async function renderRilevaManuale(dati = null) {
                     <div class="label-info">📦 Prodotto non trovato — specifica categoria e unità di misura per aggiungerlo.</div>
                     <div class="form-grid">
                         <div class="field">
-                            <label for="nuovaCategoria">Categoria</label>
-                            <select id="nuovaCategoria">
-                                <option value="">— seleziona —</option>
-                                <option>Cereali</option>
-                                <option>Condimenti</option>
-                                <option>Frutta secca</option>
-                                <option>Legumi</option>
-                                <option>Semi</option>
-                                <option>Verdure</option>
-                                <option>Altro</option>
-                            </select>
-                        </div>
+                        <label for="nuovaCategoria">Categoria</label>
+                        <select id="nuovaCategoria">
+                            <option value="">— seleziona —</option>
+                        </select>
+                    </div>  
+                    <div class="form-grid">
                         <div class="field">
                             <label for="nuovaUnita">Unità di confronto</label>
                             <select id="nuovaUnita">
@@ -168,6 +162,15 @@ async function initRilevaManuale(dati = null) {
     prodotti = resProdotti.data || [];
     negozi = resNegozi.data || [];
 
+    // ---- Popola il select categorie dal db ----
+    const selectCategoria = document.getElementById('nuovaCategoria');
+    const categorie = [...new Set(prodotti.map(p => p.categoria).filter(Boolean))].sort();
+    categorie.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        selectCategoria.appendChild(opt);
+    });
     // ---- UI: stato "nuovo" ----
     function impostaNuovoProdotto(attivo) {
         document.getElementById('inputProdotto').classList.toggle('input-nuovo', attivo);
